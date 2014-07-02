@@ -58,8 +58,8 @@ def track(x,s):
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='PLL':
-    pll_k1 = 0.04
-    pll_k2 = 3.0
+    pll_k1 = 0.15
+    pll_k2 = 6.0
     e = costas(p_prompt)
     e1 = s.carrier_e1
     s.carrier_f = s.carrier_f + pll_k1*e + pll_k2*(e-e1)
@@ -112,6 +112,11 @@ s = tracking_state(fs=fs, prn=prn,                    # initialize tracking stat
 block = 0
 coffset_phase = 0
 
+T=10000
+r_p = np.zeros(T) + (1j)*np.zeros(T)
+r_f = np.zeros(T)
+r_cf = np.zeros(T)
+
 while True:
   x = io.get_samples_complex(fp,n)
   if x==None:
@@ -123,10 +128,17 @@ while True:
   x = x*w
 
   p_prompt,s = track(x,s)
-# print p_prompt,s.carrier_f,s.code_f
+#  print block,p_prompt,s.carrier_f,s.code_f
+  r_p[block] = p_prompt
+  r_f[block] = s.carrier_f
+  r_cf[block] = s.code_f
 
   block = block + 1
+  if (block%100)==0:
+    print block
   if block==1000:
     s.mode = 'FLL_NARROW'
   if block==2000:
     s.mode = 'PLL'
+  if block==T:
+    break
