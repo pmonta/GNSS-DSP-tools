@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import numpy as np
@@ -12,8 +14,8 @@ import gnsstools.nco as nco
 #
 
 def search(x,prn):
-  fs = 4096000.0
-  n = 4096                                         # 1 ms coherent integration
+  fs = 2048000.0
+  n = 2048                                         # 1 ms coherent integration
   incr = float(ca.code_length)/n
   c = ca.code(prn,0,0,incr,n)                      # obtain samples of the C/A code
   c = fft.fft(c)
@@ -29,7 +31,7 @@ def search(x,prn):
     idx = np.argmax(q)
     if q[idx]>m_metric:
       m_metric = q[idx]
-      m_code = idx
+      m_code = ca.code_length*(float(idx)/2048)
       m_doppler = doppler
   return m_metric,m_code,m_doppler
 
@@ -37,23 +39,28 @@ def search(x,prn):
 # main program
 #
 
+# parse command-line arguments
+# example:
+#   ./acquire-gps-l1.py data/gps-5001-l1_a.dat 68873142.857 -8662285.714
+
+filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
+fs = float(sys.argv[2])       # sampling rate, Hz
+coffset = float(sys.argv[3])  # offset to L1 carrier, Hz (positive or negative)
+
 # read first 25 ms of file
 
-fref = (38880000.0*62)/70
-coffset = 1575420000 - 46*fref
-fs = 2*fref
 n = 2*int(round((2*fs*0.025)/2))
-fp = open("data/gps-5001-l1_a.dat","rb")
-#fp.seek(40*n, os.SEEK_SET)
+fp = open(filename,"rb")
+#fp.seek(bytes, os.SEEK_SET)  # fixme: make command-line parameter
 s = np.fromfile(fp,'b',n)
 fp.close()
 x = s[0:n:2] + (1j)*s[1:n:2]
 
-# resample to 4.096 MHz
+# resample to 2.048 MHz
 
-fsr = 4096000.0/fs
+fsr = 2048000.0/fs
 x = x * nco.nco(-coffset/fs,0,len(x))
-h = scipy.signal.firwin(41,3e6/(fs/2),window='hanning')
+h = scipy.signal.firwin(81,3e6/(fs/2),window='hanning')
 x = scipy.signal.filtfilt(h,[1],x)
 xr = np.interp((1/fsr)*np.arange(25*4096),np.arange(len(x)),np.real(x))
 xi = np.interp((1/fsr)*np.arange(25*4096),np.arange(len(x)),np.imag(x))
@@ -63,5 +70,5 @@ x = xr+(1j)*xi
 
 for prn in range(1,33)+[133,135,138]:
   metric,code,doppler = search(x,prn)
-  if metric>2200.0:
-    print 'gps_ca prn %3d doppler % 7.1f metric %7.1f code_offset %6.1f' % (prn,doppler,metric,code)
+  if metric>1450.0:    # fixme: need a proper metric and threshold; and estimate cn0
+    print 'prn %3d doppler % 7.1f metric %7.1f code_offset %6.1f' % (prn,doppler,metric,code)
