@@ -76,9 +76,9 @@ def track(x,s):
   if d==0:
     e = 0
   else:
-    e = (np.absolute(p_late) - np.absolute(p_early))/d
+    e = (np.absolute(p_late) - np.absolute(p_early))/d  # fixme: prevent large values by clipping
   e1 = s.code_e1
-  s.code_f = s.code_f + dll_k1*e + dll_k2*(e-e1)  # fixme: carrier aiding
+  s.code_f = s.code_f + dll_k1*e + dll_k2*(e-e1)  # fixme: do carrier aiding
   s.code_e1 = e
 
   s.code_p = s.code_p + n*s.code_f/fs
@@ -112,11 +112,6 @@ s = tracking_state(fs=fs, prn=prn,                    # initialize tracking stat
 block = 0
 coffset_phase = 0
 
-T=10000
-r_p = np.zeros(T) + (1j)*np.zeros(T)
-r_f = np.zeros(T)
-r_cf = np.zeros(T)
-
 while True:
   x = io.get_samples_complex(fp,n)
   if x==None:
@@ -128,10 +123,7 @@ while True:
   x = x*w
 
   p_prompt,s = track(x,s)
-#  print block,p_prompt,s.carrier_f,s.code_f
-  r_p[block] = p_prompt
-  r_f[block] = s.carrier_f
-  r_cf[block] = s.code_f
+  print block,p_prompt,s.carrier_f,s.code_f
 
   block = block + 1
   if (block%100)==0:
@@ -140,5 +132,3 @@ while True:
     s.mode = 'FLL_NARROW'
   if block==2000:
     s.mode = 'PLL'
-  if block==T:
-    break

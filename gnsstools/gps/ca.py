@@ -77,7 +77,7 @@ def make_g1():
   n = code_length
   x = [1,1,1,1,1,1,1,1,1,1]
   g1 = np.zeros(code_length)
-  for i in xrange(0,n):
+  for i in range(n):
     g1[i] = x[9]
     x = g1_shift(x)
   return g1
@@ -86,7 +86,7 @@ def make_g2():
   n = code_length
   x = [1,1,1,1,1,1,1,1,1,1]
   g2 = np.zeros(code_length)
-  for i in xrange(0,n):
+  for i in range(n):
     g2[i] = x[9]
     x = g2_shift(x)
   return g2
