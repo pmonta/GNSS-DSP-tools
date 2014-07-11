@@ -49,7 +49,7 @@ def l2cl_shift(x):
 def make_l2cl(prn):
   x = l2cl_init[prn]
   n = code_length
-  y = numpy.zeros(n)
+  y = np.zeros(n)
   for i in range(n):
     y[i] = x&1
     x = l2cl_shift(x)
