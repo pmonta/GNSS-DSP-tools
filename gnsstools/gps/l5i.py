@@ -6,7 +6,9 @@ import numpy as np
 
 chip_rate = 10230000
 code_length = 10230
-nh_code = [0,0,0,0,1,1,0,1,0,1]
+
+secondary_code = np.array([0,0,0,0,1,1,0,1,0,1])
+secondary_code = 1.0 - 2.0*secondary_code
 
 # initial-state table from pages 5--7 and pages 29--33 of IS-GPS-705D
 # index is PRN

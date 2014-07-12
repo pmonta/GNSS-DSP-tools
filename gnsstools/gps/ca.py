@@ -105,7 +105,7 @@ def ca_code(prn):
 
 def code(prn,chips,frac,incr,n):
   c = ca_code(prn)
-  idx = chips + frac + incr*np.arange(n)
+  idx = (chips%code_length) + frac + incr*np.arange(n)
   idx = np.floor(idx).astype('int')
   idx = np.mod(idx,code_length)
   x = c[idx]
