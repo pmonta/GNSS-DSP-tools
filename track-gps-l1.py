@@ -34,14 +34,13 @@ def track(x,s):
   n = len(x)
   fs = s.fs
 
-  x = x * nco.nco(-s.carrier_f/fs, s.carrier_p, n)
+  nco.mix(x,-s.carrier_f/fs, s.carrier_p, nco.nco_table)
+  s.carrier_p = s.carrier_p - n*s.carrier_f/fs
+  s.carrier_p = np.mod(s.carrier_p,1)
 
-  c_early = ca.code(s.prn, s.code_p-0.5, 0, s.code_f/fs, n)
-  p_early = np.sum(x*c_early)
-  c_prompt = ca.code(s.prn, s.code_p, 0, s.code_f/fs, n)
-  p_prompt = np.sum(x*c_prompt)
-  c_late = ca.code(s.prn, s.code_p+0.5, 0, s.code_f/fs, n)
-  p_late = np.sum(x*c_late)
+  p_early = ca.correlate(x, s.prn, 0, s.code_p-0.5, s.code_f/fs, ca.ca_code(prn))
+  p_prompt = ca.correlate(x, s.prn, 0, s.code_p, s.code_f/fs, ca.ca_code(prn))
+  p_late = ca.correlate(x, s.prn, 0, s.code_p+0.5, s.code_f/fs, ca.ca_code(prn))
 
   if s.mode=='FLL_WIDE':
     fll_k = 2.0
@@ -64,9 +63,6 @@ def track(x,s):
     e1 = s.carrier_e1
     s.carrier_f = s.carrier_f + pll_k1*e + pll_k2*(e-e1)
     s.carrier_e1 = e
-
-  s.carrier_p = s.carrier_p - n*s.carrier_f/fs
-  s.carrier_p = np.mod(s.carrier_p,1)
 
 # code loop
 
@@ -110,20 +106,33 @@ s = tracking_state(fs=fs, prn=prn,                    # initialize tracking stat
   mode='FLL_WIDE')
 
 block = 0
-coffset_phase = 0
+coffset_phase = 0.0
+
+do_plots = False
+
+if do_plots:
+  from plotting import stripchart
+  s1 = stripchart.stripchart(n=2000)
+  s2 = stripchart.stripchart(n=2000)
+  s3 = stripchart.stripchart(n=2000)
+  s4 = stripchart.stripchart(n=2000)
 
 while True:
   x = io.get_samples_complex(fp,n)
   if x==None:
     break
 
-  w = nco.nco(-coffset/fs,coffset_phase,n)
+  nco.mix(x,-coffset/fs,coffset_phase,nco.nco_table)
   coffset_phase = coffset_phase - n*coffset/fs
   coffset_phase = np.mod(coffset_phase,1)
-  x = x*w
 
   p_prompt,s = track(x,s)
-  print block,p_prompt,s.carrier_f,s.code_f
+  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f
+  if do_plots:
+    s1.point(s.carrier_f)
+    s2.point(s.code_f)
+    s3.point(np.real(p_prompt))
+    s4.point(np.imag(p_prompt))
 
   block = block + 1
   if (block%100)==0:

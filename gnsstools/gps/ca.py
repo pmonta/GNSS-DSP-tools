@@ -111,6 +111,25 @@ def code(prn,chips,frac,incr,n):
   x = c[idx]
   return 1.0 - 2.0*x
 
+from numba import jit
+
+@jit(nopython=True)
+def correlate(x,prn,chips,frac,incr,c):
+  n = len(x)
+  p = 0.0j
+  cp = (chips+frac)%code_length
+  for i in range(n):
+    p += x[i]*(1.0-2.0*c[int(cp)])
+    cp += incr
+    if cp>=code_length:
+      cp -= code_length
+  return p
+
+def correlate_slow(x,prn,chips,frac,incr,c):
+  n = len(x)
+  q = code(prn,chips,frac,incr,n)
+  return np.sum(x*q)
+
 # test vectors in IS-GPS-200H
 
 def first_10_chips(prn):
