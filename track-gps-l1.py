@@ -21,6 +21,7 @@ class tracking_state:
     self.prompt1 = 0 + 0*(1j)
     self.carrier_e1 = 0
     self.code_e1 = 0
+    self.eml = 0
 
 def costas(x):
   if np.real(x)>0:
@@ -66,13 +67,14 @@ def track(x,s):
 
 # code loop
 
-  dll_k1 = 0.005
-  dll_k2 = 0.6
-  d = np.absolute(p_prompt)
-  if d==0:
-    e = 0
-  else:
-    e = (np.absolute(p_late) - np.absolute(p_early))/d  # fixme: prevent large values by clipping
+#  dll_k1 = 0.005
+#  dll_k2 = 0.6
+  dll_k1 = 0.0005
+  dll_k2 = 0.2
+  pwr_early = np.real(p_early*np.conj(p_early))
+  pwr_late = np.real(p_late*np.conj(p_late))
+  e = (pwr_late-pwr_early)/(pwr_late+pwr_early)
+  s.eml = e
   e1 = s.code_e1
   s.code_f = s.code_f + dll_k1*e + dll_k2*(e-e1)  # fixme: do carrier aiding
   s.code_e1 = e
@@ -89,6 +91,7 @@ def track(x,s):
 # parse command-line arguments
 # example:
 #   ./track-gps-l1.py data/gps-6002-l1_a.dat 68873142.857 -8662285.714 12 -400 781.2
+#   samples-mix-d4 | ./track-gps-l1.py /dev/stdin 17218285.714 -53142.857 12 -400 781.2
 
 filename = sys.argv[1]             # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])            # sampling rate, Hz
@@ -108,7 +111,7 @@ s = tracking_state(fs=fs, prn=prn,                    # initialize tracking stat
 block = 0
 coffset_phase = 0.0
 
-do_plots = False
+do_plots = True
 
 if do_plots:
   from plotting import stripchart
@@ -116,6 +119,7 @@ if do_plots:
   s2 = stripchart.stripchart(n=2000)
   s3 = stripchart.stripchart(n=2000)
   s4 = stripchart.stripchart(n=2000)
+  s5 = stripchart.stripchart(n=2000)
 
 while True:
   x = io.get_samples_complex(fp,n)
@@ -127,12 +131,13 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f
+#  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f
   if do_plots:
     s1.point(s.carrier_f)
     s2.point(s.code_f)
     s3.point(np.real(p_prompt))
     s4.point(np.imag(p_prompt))
+    s5.point(s.eml)
 
   block = block + 1
   if (block%100)==0:

@@ -1,6 +1,6 @@
 import numpy as np
 
-NT = 2048
+NT = 1024
 nco_table = np.exp(2*(np.pi)*(1j)*np.arange(NT)*(1.0/NT))
 
 def nco(f,p,n):
@@ -23,8 +23,9 @@ from numba import jit
 @jit(nopython=True)
 def mix(x,f,p,tab):
   n = len(x)
+  dp = int(p*NT*65536)
+  df = int(f*NT*65536)
   for i in range(n):
-    x[i] *= tab[int(p*NT)]
-    p += f
-    if p>=1.0:
-      p -= 1.0
+    idx = dp>>16
+    x[i] *= tab[idx&(NT-1)]
+    dp += df
