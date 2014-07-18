@@ -3,7 +3,7 @@
 import sys
 import numpy as np
 
-import gnsstools.gps.ca as ca
+import gnsstools.beidou.b1i as b1i
 import gnsstools.nco as nco
 import gnsstools.io as io
 
@@ -39,11 +39,11 @@ def track(x,s):
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
   s.carrier_p = np.mod(s.carrier_p,1)
 
-  cf = (s.code_f+s.carrier_f/1540.0)/fs
+  cf = (s.code_f+s.carrier_f/763.0)/fs
 
-  p_early = ca.correlate(x, s.prn, 0, s.code_p-0.5, cf, ca.ca_code(prn))
-  p_prompt = ca.correlate(x, s.prn, 0, s.code_p, cf, ca.ca_code(prn))
-  p_late = ca.correlate(x, s.prn, 0, s.code_p+0.5, cf, ca.ca_code(prn))
+  p_early = b1i.correlate(x, s.prn, 0, s.code_p-0.5, cf, b1i.b1i_code(prn))
+  p_prompt = b1i.correlate(x, s.prn, 0, s.code_p, cf, b1i.b1i_code(prn))
+  p_late = b1i.correlate(x, s.prn, 0, s.code_p+0.5, cf, b1i.b1i_code(prn))
 
   if s.mode=='FLL_WIDE':
     fll_k = 2.0
@@ -60,8 +60,14 @@ def track(x,s):
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='PLL':
-    pll_k1 = 0.03
-    pll_k2 = 1.5
+    pll_k1 = 0.15
+    pll_k2 = 6.0
+#    pll_k1 = 0.03
+#    pll_k2 = 1.5
+#    pll_k1 = 0.01
+#    pll_k2 = 0.5
+#    pll_k1 = 0.02
+#    pll_k2 = 1.0
     e = costas(p_prompt)
     e1 = s.carrier_e1
     s.carrier_f = s.carrier_f + pll_k1*e + pll_k2*(e-e1)
@@ -69,6 +75,8 @@ def track(x,s):
 
 # code loop
 
+#  dll_k1 = 0.005
+#  dll_k2 = 0.6
   dll_k1 = 0.0005
   dll_k2 = 0.2
   pwr_early = np.real(p_early*np.conj(p_early))
@@ -80,7 +88,7 @@ def track(x,s):
   s.code_e1 = e
 
   s.code_p = s.code_p + n*cf
-  s.code_p = np.mod(s.code_p,ca.code_length)
+  s.code_p = np.mod(s.code_p,b1i.code_length)
 
   return p_prompt,s
 
@@ -90,11 +98,11 @@ def track(x,s):
 
 # parse command-line arguments
 # example:
-#   ./track-gps-l1.py data/gps-6002-l1_a.dat 68873142.857 -8662285.714 12 -400 781.2
+#   ./track-beidou-b1i.py data/gps-7001-l1_a.dat 68873142.857 -22984285.714 13 -1000 1476.5
 
 filename = sys.argv[1]             # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])            # sampling rate, Hz
-coffset = float(sys.argv[3])       # offset to L1 carrier, Hz (positive or negative)
+coffset = float(sys.argv[3])       # offset to B1 carrier, Hz (positive or negative)
 prn = int(sys.argv[4])             # PRN code
 doppler = float(sys.argv[5])       # initial doppler estimate from acquisition
 code_offset = float(sys.argv[6])   # initial code offset from acquisition
@@ -103,7 +111,7 @@ n = int(round(0.001*fs))           # number of samples per block, approx 1 ms
 fp = open(filename,"rb")
 
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
-  code_p=code_offset, code_f=ca.chip_rate, code_i=0,
+  code_p=code_offset, code_f=b1i.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
   mode='FLL_WIDE')
 
@@ -141,7 +149,7 @@ while True:
   block = block + 1
   if (block%100)==0:
     sys.stderr.write("%d\n"%block)
-  if block==1000:
-    s.mode = 'FLL_NARROW'
   if block==2000:
+    s.mode = 'FLL_NARROW'
+  if block==4000:
     s.mode = 'PLL'
