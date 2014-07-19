@@ -60,14 +60,8 @@ def track(x,s):
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='PLL':
-    pll_k1 = 0.15
-    pll_k2 = 6.0
-#    pll_k1 = 0.03
-#    pll_k2 = 1.5
-#    pll_k1 = 0.01
-#    pll_k2 = 0.5
-#    pll_k1 = 0.02
-#    pll_k2 = 1.0
+    pll_k1 = 0.03
+    pll_k2 = 1.5
     e = costas(p_prompt)
     e1 = s.carrier_e1
     s.carrier_f = s.carrier_f + pll_k1*e + pll_k2*(e-e1)
@@ -75,13 +69,14 @@ def track(x,s):
 
 # code loop
 
-#  dll_k1 = 0.005
-#  dll_k2 = 0.6
   dll_k1 = 0.0005
   dll_k2 = 0.2
   pwr_early = np.real(p_early*np.conj(p_early))
   pwr_late = np.real(p_late*np.conj(p_late))
-  e = (pwr_late-pwr_early)/(pwr_late+pwr_early)
+  if (pwr_late+pwr_early)==0:
+    e = 0
+  else:
+    e = (pwr_late-pwr_early)/(pwr_late+pwr_early)
   s.eml = e
   e1 = s.code_e1
   s.code_f = s.code_f + dll_k1*e + dll_k2*(e-e1)
