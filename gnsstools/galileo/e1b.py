@@ -34,6 +34,23 @@ def code(prn,chips,frac,incr,n):
   x = c[idx]
   return 1.0 - 2.0*x
 
+boc11 = np.array([1.0,-1.0])
+
+from numba import jit
+
+@jit(nopython=True)
+def correlate(x,prn,chips,frac,incr,c,boc11):
+  n = len(x)
+  p = 0.0j
+  cp = (chips+frac)%code_length
+  bp = (2*(chips+frac))%2
+  for i in range(n):
+    p += x[i]*(1.0-2.0*c[int(cp)])*boc11[int(bp)]
+    cp += incr
+    if cp>=code_length:
+      cp -= code_length
+  return p
+
 # test
 
 if __name__=='__main__':
