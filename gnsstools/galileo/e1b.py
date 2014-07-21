@@ -44,11 +44,13 @@ def correlate(x,prn,chips,frac,incr,c,boc11):
   p = 0.0j
   cp = (chips+frac)%code_length
   bp = (2*(chips+frac))%2
+  bp6 = (12*(chips+frac))%2
   for i in range(n):
-    p += x[i]*(1.0-2.0*c[int(cp)])*boc11[int(bp)]
-    cp += incr
-    if cp>=code_length:
-      cp -= code_length
+    cboc = 0.953463*boc11[int(bp)] + 0.301511*boc11[int(bp6)]
+    p += x[i]*(1.0-2.0*c[int(cp)])*cboc
+    cp = (cp+incr)%code_length
+    bp = (bp+2*incr)%2
+    bp6 = (bp6+12*incr)%2
   return p
 
 # test
