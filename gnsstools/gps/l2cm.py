@@ -49,7 +49,7 @@ def l2cm_shift(x):
 def make_l2cm(prn):
   x = l2cm_init[prn]
   n = code_length
-  y = numpy.zeros(n)
+  y = np.zeros(n)
   for i in range(n):
     y[i] = x&1
     x = l2cm_shift(x)
@@ -69,6 +69,20 @@ def code(prn,chips,frac,incr,n):
   idx = np.mod(idx,code_length)
   x = c[idx]
   return 1.0 - 2.0*x
+
+from numba import jit
+
+@jit(nopython=True)
+def correlate(x,prn,chips,frac,incr,c):
+  n = len(x)
+  p = 0.0j
+  cp = (chips+frac)%code_length
+  for i in range(n):
+    p += x[i]*(1.0-2.0*c[int(2*cp)])
+    cp += incr
+    if cp>=code_length:
+      cp -= code_length
+  return p
 
 # test vectors in IS-GPS-200H
 
