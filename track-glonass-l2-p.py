@@ -3,7 +3,7 @@
 import sys
 import numpy as np
 
-import gnsstools.glonass.ca as ca
+import gnsstools.glonass.p as p
 import gnsstools.nco as nco
 import gnsstools.io as io
 
@@ -38,11 +38,11 @@ def track(x,s):
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
   s.carrier_p = np.mod(s.carrier_p,1)
 
-  cf = (s.code_f+s.carrier_f/2438.4)/fs
+  cf = (s.code_f+s.carrier_f/243.84)/fs
 
-  p_early = ca.correlate(x, 0, s.code_p-0.5, cf, ca.ca_code())
-  p_prompt = ca.correlate(x, 0, s.code_p, cf, ca.ca_code())
-  p_late = ca.correlate(x, 0, s.code_p+0.5, cf, ca.ca_code())
+  p_early = p.correlate(x, 0, s.code_p-0.5, cf, p.p_code())
+  p_prompt = p.correlate(x, 0, s.code_p, cf, p.p_code())
+  p_late = p.correlate(x, 0, s.code_p+0.5, cf, p.p_code())
 
   if s.mode=='FLL_WIDE':
     fll_k = 2.0
@@ -82,7 +82,7 @@ def track(x,s):
   s.code_e1 = e
 
   s.code_p = s.code_p + n*cf
-  s.code_p = np.mod(s.code_p,ca.code_length)
+  s.code_p = np.mod(s.code_p,p.code_length)
 
   return p_prompt,s
 
@@ -92,7 +92,7 @@ def track(x,s):
 
 # parse command-line arguments
 # example:
-#   ./track-glonass-l2.py /dev/stdin 68873142.857 6283428.571 6 -2600 364.3
+#   ./track-glonass-l2-p.py /dev/stdin 68873142.857 6283428.571 1 385.0 1841430.6
 
 filename = sys.argv[1]             # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])            # sampling rate, Hz
@@ -105,7 +105,7 @@ n = int(round(0.001*fs))           # number of samples per block, approx 1 ms
 fp = open(filename,"rb")
 
 s = tracking_state(fs=fs,                             # initialize tracking state
-  code_p=code_offset, code_f=ca.chip_rate, code_i=0,
+  code_p=code_offset, code_f=p.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
   mode='PLL')
 

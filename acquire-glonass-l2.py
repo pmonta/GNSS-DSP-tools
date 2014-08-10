@@ -21,7 +21,7 @@ def search(x,chan):
   c = ca.code(0,0,incr,n)                          # obtain samples of the C/A code
   c = fft.fft(c)
   m_metric,m_code,m_doppler = 0,0,0
-  for doppler in np.arange(-5000,5000,200):        # doppler bins
+  for doppler in np.arange(-5000,5000,100):        # doppler bins
     q = np.zeros(n)
     w = nco.nco(-(437500*chan+doppler)/fs,0,n)
     for block in range(20):                        # 20 incoherent sums
@@ -61,4 +61,4 @@ nco.mix(x,-coffset/fs,0,nco.nco_table)
 for chan in range(-7,7):
   metric,code,doppler = search(x,chan)
   if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
-    print 'chan % 2d doppler % 7.1f metric %7.1f code_offset %6.1f' % (chan,doppler,metric,code)
+    print 'chan % 2d doppler % 7.1f metric %7.1f code_offset %7.2f' % (chan,doppler,metric,code)

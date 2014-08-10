@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-import os
 import numpy as np
-import scipy.signal
-import scipy.fftpack as fft
 
 import gnsstools.gps.l2cl as l2cl
-import gnsstools.gps.l2cm as l2cm
 import gnsstools.nco as nco
 import gnsstools.io as io
 
