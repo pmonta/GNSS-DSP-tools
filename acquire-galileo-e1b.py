@@ -15,18 +15,18 @@ import gnsstools.io as io
 #
 
 def search(x,prn):
-  fs = 8184000.0
-  n = 32736                                        # 4 ms coherent integration
+  fs = 8192000.0
+  n = 32768                                        # 4 ms coherent integration
   incr = float(e1b.code_length)/n
   c = e1b.code(prn,0,0,incr,n)                     # obtain samples of the E1-B code
   boc = nco.boc11(0,0,incr,n)
-  c = fft.fft(c*boc)
+  c = fft.fft(np.concatenate((c*boc,np.zeros(n))))
   m_metric,m_code,m_doppler = 0,0,0
   for doppler in np.arange(-4000,4000,50):         # doppler bins
-    q = np.zeros(n)
-    w = nco.nco(-doppler/fs,0,n)
+    q = np.zeros(2*n)
+    w = nco.nco(-doppler/fs,0,2*n)
     for block in range(20):                        # 20 incoherent sums
-      b = x[(block*n):((block+1)*n)]
+      b = x[(block*n):((block+2)*n)]
       b = b*w
       r = fft.ifft(c*np.conj(fft.fft(b)))
       q = q + np.absolute(r)
@@ -35,6 +35,7 @@ def search(x,prn):
       m_metric = q[idx]
       m_code = e1b.code_length*(float(idx)/n)
       m_doppler = doppler
+  m_code = m_code%e1b.code_length
   return m_metric,m_code,m_doppler
 
 #
@@ -49,20 +50,20 @@ filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit sig
 fs = float(sys.argv[2])       # sampling rate, Hz
 coffset = float(sys.argv[3])  # offset to E1 Galileo carrier, Hz (positive or negative)
 
-# read first 90 ms of file
+# read first 85 ms of file
 
-n = int(fs*0.090)
+n = int(fs*0.085)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 
-# resample to 8.184 MHz
+# resample to 8.192 MHz
 
-fsr = 8184000.0/fs
+fsr = 8192000.0/fs
 nco.mix(x,-coffset/fs,0,nco.nco_table)
-h = scipy.signal.firwin(81,3e6/(fs/2),window='hanning')
+h = scipy.signal.firwin(161,4e6/(fs/2),window='hanning')
 x = scipy.signal.filtfilt(h,[1],x)
-xr = np.interp((1/fsr)*np.arange(90*8184),np.arange(len(x)),np.real(x))
-xi = np.interp((1/fsr)*np.arange(90*8184),np.arange(len(x)),np.imag(x))
+xr = np.interp((1/fsr)*np.arange(85*8192),np.arange(len(x)),np.real(x))
+xi = np.interp((1/fsr)*np.arange(85*8192),np.arange(len(x)),np.imag(x))
 x = xr+(1j)*xi
 
 # iterate over channels of interest

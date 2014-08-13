@@ -6,6 +6,7 @@ import numpy as np
 import gnsstools.galileo.e1c as e1c
 import gnsstools.nco as nco
 import gnsstools.io as io
+import gnsstools.discriminator as discriminator
 
 class tracking_state:
   def __init__(self,fs,prn,code_p,code_f,code_i,carrier_p,carrier_f,carrier_i,mode):
@@ -22,12 +23,6 @@ class tracking_state:
     self.carrier_e1 = 0
     self.code_e1 = 0
     self.eml = 0
-
-def costas(x):
-  if np.real(x)>0:
-    return np.arctan2(np.imag(x),np.real(x))
-  else:
-    return np.arctan2(-np.imag(x),-np.real(x))
 
 # tracking loops
 
@@ -49,28 +44,28 @@ def track(x,s):
     fll_k = 2.0
     a = p_prompt
     b = s.prompt1
-    e = np.arctan2(np.imag(a)*np.real(b)-np.real(a)*np.imag(b),np.real(a)*np.real(b)+np.imag(a)*np.imag(b))
+    e = discriminator.fll_atan(a,b)
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='FLL_NARROW':
-    fll_k = 0.3
+    fll_k = 0.6
     a = p_prompt
     b = s.prompt1
-    e = np.arctan2(np.imag(a)*np.real(b)-np.real(a)*np.imag(b),np.real(a)*np.real(b)+np.imag(a)*np.imag(b))
+    e = discriminator.fll_atan(a,b)
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='PLL':
-    pll_k1 = 0.03
-    pll_k2 = 1.5
-    e = costas(p_prompt)
+    pll_k1 = 0.1
+    pll_k2 = 5.0
+    e = discriminator.pll_costas(p_prompt)
     e1 = s.carrier_e1
     s.carrier_f = s.carrier_f + pll_k1*e + pll_k2*(e-e1)
     s.carrier_e1 = e
 
 # code loop
 
-  dll_k1 = 0.003
-  dll_k2 = 1.0
+  dll_k1 = 0.0005
+  dll_k2 = 0.2
   pwr_early = np.real(p_early*np.conj(p_early))
   pwr_late = np.real(p_late*np.conj(p_late))
   if (pwr_late+pwr_early)==0:
@@ -102,28 +97,26 @@ prn = int(sys.argv[4])             # PRN code
 doppler = float(sys.argv[5])       # initial doppler estimate from acquisition
 code_offset = float(sys.argv[6])   # initial code offset from acquisition
 
-n = int(round(0.001*fs))           # number of samples per block, approx 1 ms
 fp = open(filename,"rb")
+
+n = int(fs*0.004*((e1c.code_length-code_offset)/e1c.code_length))  # align with 4 ms code boundary
+x = io.get_samples_complex(fp,n)
+code_offset += n*250.0*e1c.code_length/fs
 
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
   code_p=code_offset, code_f=e1c.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
-  mode='PLL')
+  mode='FLL_WIDE')
 
 block = 0
 coffset_phase = 0.0
 
-do_plots = False
-
-if do_plots:
-  from plotting import stripchart
-  s1 = stripchart.stripchart(n=2000)
-  s2 = stripchart.stripchart(n=2000)
-  s3 = stripchart.stripchart(n=2000)
-  s4 = stripchart.stripchart(n=2000)
-  s5 = stripchart.stripchart(n=2000)
-
 while True:
+  if s.code_p<e1c.code_length/2:
+    n = int(fs*0.004*(e1c.code_length-s.code_p)/e1c.code_length)
+  else:
+    n = int(fs*0.004*(2*e1c.code_length-s.code_p)/e1c.code_length)
+
   x = io.get_samples_complex(fp,n)
   if x==None:
     break
@@ -132,17 +125,15 @@ while True:
   coffset_phase = coffset_phase - n*coffset/fs
   coffset_phase = np.mod(coffset_phase,1)
 
-  p_prompt,s = track(x,s)
-  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f-e1c.chip_rate,s.eml
-  if do_plots:
-    s1.point(s.carrier_f)
-    s2.point(s.code_f)
-    s3.point(np.real(p_prompt))
-    s4.point(np.imag(p_prompt))
-    s5.point(s.eml)
+  for j in range(4):
+    a,b = int(j*n/4),int((j+1)*n/4)
+    p_prompt,s = track(x[a:b],s)
+    print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f-e1c.chip_rate,(180/np.pi)*np.angle(p_prompt)
 
-  block = block + 1
-  if (block%100)==0:
-    sys.stderr.write("%d\n"%block)
-#  if block==2000:
-#    s.mode = 'PLL'
+    block = block + 1
+    if (block%100)==0:
+      sys.stderr.write("%d\n"%block)
+    if block==500:
+      s.mode = 'FLL_NARROW'
+    if block==1000:
+      s.mode = 'PLL'

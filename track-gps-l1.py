@@ -113,7 +113,7 @@ block = 0
 coffset_phase = 0.0
 
 while True:
-  if s.code_p<511:
+  if s.code_p<ca.code_length/2:
     n = int(fs*0.001*(ca.code_length-s.code_p)/ca.code_length)
   else:
     n = int(fs*0.001*(2*ca.code_length-s.code_p)/ca.code_length)
@@ -127,7 +127,7 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f,(180/np.pi)*np.angle(p_prompt)
+  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f-ca.chip_rate,(180/np.pi)*np.angle(p_prompt)
 
   block = block + 1
   if (block%100)==0:
