@@ -112,16 +112,6 @@ s = tracking_state(fs=fs, prn=prn,                    # initialize tracking stat
 block = 0
 coffset_phase = 0.0
 
-do_plots = False
-
-if do_plots:
-  from plotting import stripchart
-  s1 = stripchart.stripchart(n=2000)
-  s2 = stripchart.stripchart(n=2000)
-  s3 = stripchart.stripchart(n=2000)
-  s4 = stripchart.stripchart(n=2000)
-  s5 = stripchart.stripchart(n=2000)
-
 while True:
   if s.code_p<511:
     n = int(fs*0.001*(ca.code_length-s.code_p)/ca.code_length)
@@ -138,12 +128,6 @@ while True:
 
   p_prompt,s = track(x,s)
   print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f,(180/np.pi)*np.angle(p_prompt)
-  if do_plots:
-    s1.point(s.carrier_f)
-    s2.point(s.code_f)
-    s3.point(np.real(p_prompt))
-    s4.point(np.imag(p_prompt))
-    s5.point(s.eml)
 
   block = block + 1
   if (block%100)==0:

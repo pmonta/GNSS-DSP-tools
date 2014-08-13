@@ -15,8 +15,8 @@ import gnsstools.io as io
 #
 
 def search(x,chan):
-  fs = 68873142.857
-  n = 68875
+  fs = 16384000.0
+  n = 16384
   incr = float(ca.code_length)/n
   c = ca.code(0,0,incr,n)                          # obtain samples of the C/A code
   c = fft.fft(c)
@@ -24,7 +24,7 @@ def search(x,chan):
   for doppler in np.arange(-5000,5000,200):        # doppler bins
     q = np.zeros(n)
     w = nco.nco(-(562500*chan+doppler)/fs,0,n)
-    for block in range(20):                        # 20 incoherent sums
+    for block in range(80):                        # 80 incoherent sums
       b = x[(block*n):((block+1)*n)]
       b = b*w
       r = fft.ifft(c*np.conj(fft.fft(b)))
@@ -48,13 +48,24 @@ filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit sig
 fs = float(sys.argv[2])       # sampling rate, Hz
 coffset = float(sys.argv[3])  # offset to L1 GLONASS carrier channel 0, Hz (positive or negative)
 
-# read first 25 ms of file
+# read first 85 ms of file
 
-n = int(fs*0.025)
+n = int(fs*0.085)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 
+# wipe off nominal offset from channel center to GLONASS L1 carrier
+
 nco.mix(x,-coffset/fs,0,nco.nco_table)
+
+# resample to 16.384 MHz
+
+fsr = 16384000.0/fs
+h = scipy.signal.firwin(161,6e6/(fs/2),window='hanning')
+x = scipy.signal.filtfilt(h,[1],x)
+xr = np.interp((1/fsr)*np.arange(85*16384),np.arange(len(x)),np.real(x))
+xi = np.interp((1/fsr)*np.arange(85*16384),np.arange(len(x)),np.imag(x))
+x = xr+(1j)*xi
 
 # iterate over channels of interest
 
