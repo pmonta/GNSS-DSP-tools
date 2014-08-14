@@ -65,9 +65,7 @@ def correlate(x,prn,chips,frac,incr,c):
   cp = (chips+frac)%code_length
   for i in range(n):
     p += x[i]*(1.0-2.0*c[int(cp)])
-    cp += incr
-    if cp>=code_length:
-      cp -= code_length
+    cp = (cp+incr)%code_length
   return p
 
 # test
