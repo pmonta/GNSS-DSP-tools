@@ -70,6 +70,8 @@ def code(prn,chips,frac,incr,n):
   x = c[idx]
   return 1.0 - 2.0*x
 
+rz = np.array([1.0,0.0])
+
 from numba import jit
 
 @jit(nopython=True)
@@ -77,11 +79,11 @@ def correlate(x,prn,chips,frac,incr,c):
   n = len(x)
   p = 0.0j
   cp = (chips+frac)%code_length
+  rzp = (2*(chips+frac))%2
   for i in range(n):
-    p += x[i]*(1.0-2.0*c[int(2*cp)])
-    cp += incr
-    if cp>=code_length:
-      cp -= code_length
+    p += x[i]*(1.0-2.0*c[int(cp)])*rz[int(rzp)]
+    cp = (cp+incr)%code_length
+    rzp = (rzp+2*incr)%2
   return p
 
 # test vectors in IS-GPS-200H

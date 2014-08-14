@@ -14,14 +14,12 @@ import gnsstools.io as io
 def search(x,prn,doppler,l2cm_code_phase):
   n = int(fs*0.020)
   w = nco.nco(-doppler/fs,0,n)
+  incr = l2cl.chip_rate/fs
   m_metric,m_k = 0,0
   for k in range(75):
     q = 0
-    for block in range(2):
-      incr = 2*511500.0/fs
-      d = l2cl.code(prn,(k+block)*10230+l2cm_code_phase,0,incr,(n/2))
-      c = np.zeros(n)
-      c[0:n:2] = d
+    for block in range(4):
+      c = l2cl.code(prn,(k+block)*10230+l2cm_code_phase,0,incr,n)
       p = x[n*block:n*(block+1)]*c*w
       q = q + np.absolute(np.sum(p))
     if q>m_metric:
@@ -44,9 +42,9 @@ prn = int(sys.argv[4])
 doppler = float(sys.argv[5])
 l2cm_code_phase = float(sys.argv[6])
 
-# read first 70 ms of file
+# read first 85 ms of file
 
-n = int(fs*0.070)
+n = int(fs*0.085)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 

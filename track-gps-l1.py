@@ -97,7 +97,6 @@ prn = int(sys.argv[4])             # PRN code
 doppler = float(sys.argv[5])       # initial doppler estimate from acquisition
 code_offset = float(sys.argv[6])   # initial code offset from acquisition
 
-n = int(round(0.001*fs))           # number of samples per block, approx 1 ms
 fp = open(filename,"rb")
 
 n = int(fs*0.001*((ca.code_length-code_offset)/ca.code_length))  # align with 1 ms code boundary

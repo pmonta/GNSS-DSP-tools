@@ -15,29 +15,26 @@ import gnsstools.io as io
 #
 
 def search(x,prn):
-  fs = 4092000.0
-  n = 81840                                        # 20 ms coherent integration
-  incr = float(l2cm.code_length)/(n/2)
-  d = l2cm.code(prn,0,0,incr,(n/2))                    # obtain samples of the L2CM code
-  c = np.zeros(n)
-  c[0:n:2] = d
-  c = fft.fft(c)
+  fs = 4096000.0
+  n = 81920                                        # 20 ms coherent integration
+  incr = float(l2cm.code_length)/n
+  c = l2cm.code(prn,0,0,incr,n)                    # obtain samples of the L2CM code
+  c = fft.fft(np.concatenate((c,np.zeros(n))))
   m_metric,m_code,m_doppler = 0,0,0
-  for offset in [0,1]:
-    for doppler in np.arange(-5000,5000,20):        # doppler bins
-      q = np.zeros(n)
-      w = nco.nco(-doppler/fs,0,n)
-      for block in range(4):                        # 4 incoherent sums
-        p = offset*(n/2)
-        b = x[p+(block*n):p+((block+1)*n)]
-        b = b*w
-        r = fft.ifft(c*np.conj(fft.fft(b)))
-        q = q + np.absolute(r)
-      idx = np.argmax(q)
-      if q[idx]>m_metric:
-        m_metric = q[idx]
-        m_code = l2cm.code_length*(float(idx)/n)
-        m_doppler = doppler
+  for doppler in np.arange(-5000,5000,10):         # doppler bins
+    q = np.zeros(2*n)
+    w = nco.nco(-doppler/fs,0,2*n)
+    for block in range(4):                         # 4 incoherent sums
+      b = x[(block*n):((block+2)*n)]
+      b = b*w
+      r = fft.ifft(c*np.conj(fft.fft(b)))
+      q = q + np.absolute(r)
+    idx = np.argmax(q)
+    if q[idx]>m_metric:
+      m_metric = q[idx]
+      m_code = l2cm.code_length*(float(idx)/n)
+      m_doppler = doppler
+  m_code = m_code%l2cm.code_length
   return m_metric,m_code,m_doppler
 
 #
@@ -52,26 +49,25 @@ filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit sig
 fs = float(sys.argv[2])       # sampling rate, Hz
 coffset = float(sys.argv[3])  # offset to L1 carrier, Hz (positive or negative)
 
-# read first 95 ms of file
+# read first 105 ms of file
 
-n = int(fs*0.095)
+n = int(fs*0.105)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 
-# resample to 4.092 MHz
+# resample to 4.096 MHz
 
-fsr = 4092000.0/fs
+fsr = 4096000.0/fs
 x = x * nco.nco(-coffset/fs,0,len(x))
-h = scipy.signal.firwin(81,3e6/(fs/2),window='hanning')
+h = scipy.signal.firwin(161,1.5e6/(fs/2),window='hanning')
 x = scipy.signal.filtfilt(h,[1],x)
-xr = np.interp((1/fsr)*np.arange(95*4092),np.arange(len(x)),np.real(x))
-xi = np.interp((1/fsr)*np.arange(95*4092),np.arange(len(x)),np.imag(x))
+xr = np.interp((1/fsr)*np.arange(105*4096),np.arange(len(x)),np.real(x))
+xi = np.interp((1/fsr)*np.arange(105*4096),np.arange(len(x)),np.imag(x))
 x = xr+(1j)*xi
 
 # iterate over PRNs of interest
 
-#for prn in range(1,33):
-for prn in [11,29,30,31]:
+for prn in range(1,33):
   metric,code,doppler = search(x,prn)
   if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
     print 'prn %3d doppler % 7.1f metric %7.1f code_offset %6.1f' % (prn,doppler,metric,code)
