@@ -96,7 +96,6 @@ chan = int(sys.argv[4])            # GLONASS channel number, -7..6
 doppler = float(sys.argv[5])       # initial doppler estimate from acquisition
 code_offset = float(sys.argv[6])   # initial code offset from acquisition
 
-n = int(round(0.001*fs))           # number of samples per block, approx 1 ms
 fp = open(filename,"rb")
 
 n = int(fs*0.001*((ca.code_length-code_offset)/ca.code_length))  # align with 1 ms code boundary
@@ -112,7 +111,7 @@ block = 0
 coffset_phase = 0.0
 
 while True:
-  if s.code_p<255:
+  if s.code_p<ca.code_length/2:
     n = int(fs*0.001*(ca.code_length-s.code_p)/ca.code_length)
   else:
     n = int(fs*0.001*(2*ca.code_length-s.code_p)/ca.code_length)
