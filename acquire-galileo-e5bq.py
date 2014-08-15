@@ -16,16 +16,16 @@ import gnsstools.io as io
 
 def search(x,prn):
   fs = 3*10230000.0
-  n = 3*10230
+  n = 3*10230                                       # 1 ms coherent integration
   incr = float(e5bq.code_length)/n
   c = e5bq.code(prn,0,0,incr,n)                     # obtain samples of the E5b-Q code
-  c = fft.fft(c)
+  c = fft.fft(np.concatenate((c,np.zeros(n))))
   m_metric,m_code,m_doppler = 0,0,0
-  for doppler in np.arange(-4000,4000,100):         # doppler bins
-    q = np.zeros(n)
-    w = nco.nco(-doppler/fs,0,n)
-    for block in range(10):                         # 10 incoherent sums
-      b = x[(block*n):((block+1)*n)]
+  for doppler in np.arange(-4000,4000,200):         # doppler bins
+    q = np.zeros(2*n)
+    w = nco.nco(-doppler/fs,0,2*n)
+    for block in range(80):                         # 80 incoherent sums
+      b = x[(block*n):((block+2)*n)]
       b = b*w
       r = fft.ifft(c*np.conj(fft.fft(b)))
       q = q + np.absolute(r)
@@ -34,6 +34,7 @@ def search(x,prn):
       m_metric = q[idx]
       m_code = e5bq.code_length*(float(idx)/n)
       m_doppler = doppler
+  m_code = m_code%e5bq.code_length
   return m_metric,m_code,m_doppler
 
 #
@@ -52,14 +53,13 @@ coffset = float(sys.argv[3])  # offset to E1 Galileo carrier, Hz (positive or ne
 
 n = int(fs*0.085)
 fp = open(filename,"rb")
-x = io.get_samples_complex(fp,int(fs*3*0.00025)) #temp
 x = io.get_samples_complex(fp,n)
 
 # resample to 3*10.230 MHz
 
 fsr = 3*10230000.0/fs
 nco.mix(x,-coffset/fs,0,nco.nco_table)
-h = scipy.signal.firwin(161,3*3e6/(fs/2),window='hanning')
+h = scipy.signal.firwin(161,12e6/(fs/2),window='hanning')
 x = scipy.signal.filtfilt(h,[1],x)
 xr = np.interp((1/fsr)*np.arange(85*3*10230),np.arange(len(x)),np.real(x))
 xi = np.interp((1/fsr)*np.arange(85*3*10230),np.arange(len(x)),np.imag(x))
