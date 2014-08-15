@@ -99,7 +99,7 @@ code_offset = float(sys.argv[6])   # initial code offset from acquisition
 
 fp = open(filename,"rb")
 
-n = int(fs*1.500*((l2cl.code_length-code_offset)/l2cl.code_length))  # align with 20 ms code boundary
+n = int(fs*1.500*((l2cl.code_length-code_offset)/l2cl.code_length))  # align with 1500 ms code boundary
 sys.stderr.write('%d'%n)
 x = io.get_samples_complex(fp,n)
 code_offset += n*(1.0/1.500)*l2cl.code_length/fs
@@ -117,7 +117,6 @@ while True:
     n = int(fs*1.500*(l2cl.code_length-s.code_p)/l2cl.code_length)
   else:
     n = int(fs*1.500*(2*l2cl.code_length-s.code_p)/l2cl.code_length)
-  sys.stderr.write('%d'%n)
 
   x = io.get_samples_complex(fp,n)
   if x==None:

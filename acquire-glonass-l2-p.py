@@ -12,18 +12,18 @@ import gnsstools.io as io
 #
 
 def search(x,chan,doppler,ca_code_phase):
-  n = int(fs*0.001)
+  n = int(fs*0.004)
   w = nco.nco(-(437500*chan+doppler)/fs,0,n)
   m_metric,m_k = 0,0
   for k in range(1000):
     q = 0
     cp = 5110*k + 10*ca_code_phase
-    for block in range(10):
+    for block in range(20):
       incr = 5110000.0/fs
       c = p.code(0,cp,incr,n)
       xp = x[n*block:n*(block+1)]*c*w
       q = q + np.absolute(np.sum(xp))
-      cp = cp + n*incr
+      cp += n*incr
     print('%f %f'%(k,q))
     if q>m_metric:
       m_metric = q
@@ -45,9 +45,9 @@ chan = int(sys.argv[4])
 doppler = float(sys.argv[5])
 ca_code_phase = float(sys.argv[6])
 
-# read first 20 ms of file
+# read first 85 ms of file
 
-n = int(fs*0.020)
+n = int(fs*0.085)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 
