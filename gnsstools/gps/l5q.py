@@ -117,6 +117,18 @@ def code(prn,chips,frac,incr,n):
   x = c[idx]
   return 1.0 - 2.0*x
 
+from numba import jit
+
+@jit(nopython=True)
+def correlate(x,prn,chips,frac,incr,c):
+  n = len(x)
+  p = 0.0j
+  cp = (chips+frac)%code_length
+  for i in range(n):
+    p += x[i]*(1.0-2.0*c[int(cp)])
+    cp = (cp+incr)%code_length
+  return p
+
 # test vectors in IS-GPS-705D (for XB only unfortunately)
 
 xb_start_state = {
