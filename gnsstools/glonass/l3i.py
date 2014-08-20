@@ -1,0 +1,69 @@
+# GLONASS L3OC-I (data signal) code construction
+#
+# Copyright 2014 Peter Monta
+
+import numpy as np
+
+chip_rate = 10230000
+code_length = 10230
+
+secondary_code = np.array([0,0,0,1,0])
+secondary_code = 1.0 - 2.0*secondary_code
+
+def g2_shift(x):
+  return [x[13]^x[12]^x[7]^x[3]] + x[0:13]
+
+def g3_shift(x):
+  return [x[6]^x[5]] + x[0:6]
+
+def seq(n):
+  s = []
+  for i in range(7):
+    s = s + [(n>>(6-i))&1]
+  return s
+
+def make_l3i(n):
+  g3 = seq(n+32)
+  g2 = [0,0,1,1,0,1,0,0,1,1,1,0,0,0]
+  x = np.zeros(code_length)
+  for i in range(code_length):
+    x[i] = g3[6]^g2[13]
+    g3 = g3_shift(g3)
+    g2 = g2_shift(g2)
+  return x
+
+codes = {}
+
+def l3i_code(n):
+  if not codes.has_key(n):
+    codes[n] = make_l3i(n)
+  return codes[n]
+
+def code(prn,chips,frac,incr,n):
+  c = l3i_code(prn)
+  idx = (chips%code_length) + frac + incr*np.arange(n)
+  idx = np.floor(idx).astype('int')
+  idx = np.mod(idx,code_length)
+  x = c[idx]
+  return 1.0 - 2.0*x
+
+from numba import jit
+
+@jit(nopython=True)
+def correlate(x,prn,chips,frac,incr,c):
+  n = len(x)
+  p = 0.0j
+  cp = (chips+frac)%code_length
+  for i in range(n):
+    p += x[i]*(1.0-2.0*c[int(cp)])
+    cp = (cp+incr)%code_length
+  return p
+
+# print some codes (no ICD document or test vectors available, apparently)
+
+if __name__=='__main__':
+  import sys
+  c = l3i_code(30)
+  for i in range(200):
+    sys.stdout.write('%d'%c[i])
+  sys.stdout.write('\n')
