@@ -23,6 +23,8 @@ class tracking_state:
     self.carrier_e1 = 0
     self.code_e1 = 0
     self.eml = 0
+    self.carrier_cyc = 0
+    self.code_cyc = 0
 
 # tracking loops
 
@@ -32,13 +34,16 @@ def track(x,s):
 
   nco.mix(x,-s.carrier_f/fs, s.carrier_p, nco.nco_table)
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
-  s.carrier_p = np.mod(s.carrier_p,1)
+  t = np.mod(s.carrier_p,1)
+  dcyc = int(round(s.carrier_p-t))
+  s.carrier_cyc += dcyc
+  s.carrier_p = t
 
   cf = (s.code_f+s.carrier_f/1540.0)/fs
 
-  p_early = ca.correlate(x, s.prn, 0, s.code_p-0.5, cf, ca.ca_code(prn))
+  p_early = ca.correlate(x, s.prn, 0, s.code_p-0.05, cf, ca.ca_code(prn))
   p_prompt = ca.correlate(x, s.prn, 0, s.code_p, cf, ca.ca_code(prn))
-  p_late = ca.correlate(x, s.prn, 0, s.code_p+0.5, cf, ca.ca_code(prn))
+  p_late = ca.correlate(x, s.prn, 0, s.code_p+0.05, cf, ca.ca_code(prn))
 
   if s.mode=='FLL_WIDE':
     fll_k = 3.0
@@ -64,21 +69,25 @@ def track(x,s):
 
 # code loop
 
-  dll_k1 = 0.0005
+  dll_k1 = 0.00002
   dll_k2 = 0.2
-  pwr_early = np.real(p_early*np.conj(p_early))
-  pwr_late = np.real(p_late*np.conj(p_late))
-  if (pwr_late+pwr_early)==0:
+  s.early = np.absolute(p_early)
+  s.prompt = np.absolute(p_prompt)
+  s.late = np.absolute(p_late)
+  if (s.late+s.early)==0:
     e = 0
   else:
-    e = (pwr_late-pwr_early)/(pwr_late+pwr_early)
+    e = (s.late-s.early)/(s.late+s.early)
   s.eml = e
   e1 = s.code_e1
   s.code_f = s.code_f + dll_k1*e + dll_k2*(e-e1)
   s.code_e1 = e
 
   s.code_p = s.code_p + n*cf
-  s.code_p = np.mod(s.code_p,ca.code_length)
+  t = np.mod(s.code_p,ca.code_length)
+  dcyc = int(round(s.code_p-t))
+  s.code_cyc += dcyc
+  s.code_p = t
 
   return p_prompt,s
 
@@ -106,10 +115,12 @@ code_offset += n*1000.0*ca.code_length/fs
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
   code_p=code_offset, code_f=ca.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
-  mode='FLL_WIDE')
+#  mode='FLL_WIDE')
+  mode='PLL')
 
 block = 0
 coffset_phase = 0.0
+samp = 0
 
 while True:
   if s.code_p<ca.code_length/2:
@@ -120,18 +131,19 @@ while True:
   x = io.get_samples_complex(fp,n)
   if x==None:
     break
+  samp += n
 
   nco.mix(x,-coffset/fs,coffset_phase,nco.nco_table)
   coffset_phase = coffset_phase - n*coffset/fs
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f-ca.chip_rate,(180/np.pi)*np.angle(p_prompt)
+  print block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-ca.chip_rate, (180/np.pi)*np.angle(p_prompt), s.code_p, s.code_cyc, s.carrier_p, s.carrier_cyc, s.early, s.prompt, s.late, s.eml, samp, s.code_p+s.code_cyc-((s.carrier_p+s.carrier_cyc)/1540.0)
 
   block = block + 1
   if (block%100)==0:
     sys.stderr.write("%d\n"%block)
-  if block==500:
-    s.mode = 'FLL_NARROW'
-  if block==1000:
-    s.mode = 'PLL'
+#  if block==500:
+#    s.mode = 'FLL_NARROW'
+#  if block==1000:
+#    s.mode = 'PLL'
