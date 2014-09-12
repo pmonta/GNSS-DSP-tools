@@ -23,7 +23,7 @@ def search(x,chan):
   m_metric,m_code,m_doppler = 0,0,0
   for doppler in np.arange(-5000,5000,200):        # doppler bins
     q = np.zeros(n)
-    w = nco.nco(-(562500*chan+doppler)/fs,0,n)
+    w = nco.nco(-(437500*chan+doppler)/fs,0,n)
     for block in range(80):                        # 80 incoherent sums
       b = x[(block*n):((block+1)*n)]
       b = b*w
