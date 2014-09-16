@@ -64,14 +64,15 @@ def track(x,s):
 
 # code loop
 
-  dll_k1 = 0.0005
+  dll_k1 = 0.00002
   dll_k2 = 0.2
-  pwr_early = np.real(p_early*np.conj(p_early))
-  pwr_late = np.real(p_late*np.conj(p_late))
-  if (pwr_late+pwr_early)==0:
+  s.early = np.absolute(p_early)
+  s.prompt = np.absolute(p_prompt)
+  s.late = np.absolute(p_late)
+  if (s.late+s.early)==0:
     e = 0
   else:
-    e = (pwr_late-pwr_early)/(pwr_late+pwr_early)
+    e = (s.late-s.early)/(s.late+s.early)
   s.eml = e
   e1 = s.code_e1
   s.code_f = s.code_f + dll_k1*e + dll_k2*(e-e1)
@@ -126,11 +127,11 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  print block,np.real(p_prompt),np.imag(p_prompt),s.carrier_f,s.code_f-b1i.chip_rate,(180/np.pi)*np.angle(p_prompt)
+  print block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-b1i.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
 
   block = block + 1
-  if (block%100)==0:
-    sys.stderr.write("%d\n"%block)
+#  if (block%100)==0:
+#    sys.stderr.write("%d\n"%block)
   if block==1000:
     s.mode = 'FLL_NARROW'
   if block==2000:

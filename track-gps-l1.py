@@ -115,8 +115,7 @@ code_offset += n*1000.0*ca.code_length/fs
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
   code_p=code_offset, code_f=ca.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
-#  mode='FLL_WIDE')
-  mode='PLL')
+  mode='FLL_WIDE')
 
 block = 0
 coffset_phase = 0.0
@@ -138,12 +137,12 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  print block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-ca.chip_rate, (180/np.pi)*np.angle(p_prompt), s.code_p, s.code_cyc, s.carrier_p, s.carrier_cyc, s.early, s.prompt, s.late, s.eml, samp, s.code_p+s.code_cyc-((s.carrier_p+s.carrier_cyc)/1540.0)
+  print block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-ca.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
 
   block = block + 1
-  if (block%100)==0:
-    sys.stderr.write("%d\n"%block)
-#  if block==500:
-#    s.mode = 'FLL_NARROW'
-#  if block==1000:
-#    s.mode = 'PLL'
+#  if (block%100)==0:
+#    sys.stderr.write("%d\n"%block)
+  if block==500:
+    s.mode = 'FLL_NARROW'
+  if block==1000:
+    s.mode = 'PLL'

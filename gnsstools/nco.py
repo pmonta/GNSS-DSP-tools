@@ -23,9 +23,9 @@ from numba import jit
 @jit(nopython=True)
 def mix(x,f,p,tab):
   n = len(x)
-  dp = int(p*NT*65536)
-  df = int(f*NT*65536)
+  dp = int(round(p*NT*2097152))  # fixme: should probably be 64-bit
+  df = int(round(f*NT*2097152))
   for i in range(n):
-    idx = dp>>16
+    idx = dp>>21
     x[i] *= tab[idx&(NT-1)]
     dp += df
