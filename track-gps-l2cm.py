@@ -30,7 +30,7 @@ def track(x,s):
   n = len(x)
   fs = s.fs
 
-  nco.mix(x,-s.carrier_f/fs, s.carrier_p, nco.nco_table)
+  nco.mix(x,-s.carrier_f/fs, s.carrier_p)
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
   s.carrier_p = np.mod(s.carrier_p,1)
 
@@ -122,7 +122,7 @@ while True:
   if x==None:
     break
 
-  nco.mix(x,-coffset/fs,coffset_phase,nco.nco_table)
+  nco.mix(x,-coffset/fs,coffset_phase)
   coffset_phase = coffset_phase - n*coffset/fs
   coffset_phase = np.mod(coffset_phase,1)
 

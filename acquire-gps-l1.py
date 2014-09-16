@@ -56,7 +56,7 @@ x = io.get_samples_complex(fp,n)
 
 # wipe off nominal offset from channel center to GPS L1 carrier
 
-nco.mix(x,-coffset/fs,0,nco.nco_table)
+nco.mix(x,-coffset/fs,0)
 
 # resample to 4.096 MHz
 

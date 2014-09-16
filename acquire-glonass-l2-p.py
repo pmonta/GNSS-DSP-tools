@@ -51,7 +51,7 @@ n = int(fs*0.085)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 
-nco.mix(x,-coffset/fs,0,nco.nco_table)
+nco.mix(x,-coffset/fs,0)
 
 metric,k = search(x,chan,doppler,ca_code_phase)
 print('%f %f'%(5110*k+10*ca_code_phase,metric))

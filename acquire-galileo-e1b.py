@@ -59,7 +59,7 @@ x = io.get_samples_complex(fp,n)
 # resample to 8.192 MHz
 
 fsr = 8192000.0/fs
-nco.mix(x,-coffset/fs,0,nco.nco_table)
+nco.mix(x,-coffset/fs,0)
 h = scipy.signal.firwin(161,4e6/(fs/2),window='hanning')
 x = scipy.signal.filtfilt(h,[1],x)
 xr = np.interp((1/fsr)*np.arange(85*8192),np.arange(len(x)),np.real(x))

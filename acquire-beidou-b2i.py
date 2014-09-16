@@ -57,7 +57,7 @@ x = io.get_samples_complex(fp,n)
 
 # wipe off nominal offset from channel center to BeiDou B1 carrier
 
-nco.mix(x,-coffset/fs,0,nco.nco_table)
+nco.mix(x,-coffset/fs,0)
 
 # resample to 8.192 MHz
 
