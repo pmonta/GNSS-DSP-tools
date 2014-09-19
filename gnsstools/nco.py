@@ -18,15 +18,16 @@ def boc11(chips,frac,incr,n):
   idx = np.mod(idx,boc11_length)
   return c[idx]
 
+import numba
 from numba import jit
 
-@jit(nopython=True)
+@jit(nopython=True,locals={'dp': numba.int64, 'df': numba.int64})
 def mix_(x,f,p,tab):
   n = len(x)
-  dp = int(np.floor(p*NT*2097152))  # fixme: should probably be 64-bit
-  df = int(round(f*NT*2097152))
+  dp = int(np.floor(p*NT*(1<<50)))
+  df = int(np.floor(f*NT*(1<<50)))
   for i in range(n):
-    idx = dp>>21
+    idx = dp>>50
     x[i] *= tab[idx&(NT-1)]
     dp += df
 
