@@ -18,8 +18,14 @@ def boc11(chips,frac,incr,n):
   idx = np.mod(idx,boc11_length)
   return c[idx]
 
-import numba
-from numba import jit
+try:
+  import numba
+  from numba import jit
+except:
+  def jit(**kwargs):
+    return lambda x: x
+  class numba:
+    int64 = None
 
 @jit(nopython=True,locals={'dp': numba.int64, 'df': numba.int64})
 def mix_(x,f,p,tab):

@@ -1,6 +1,10 @@
 import numpy as np
 
-from numba import jit
+try:
+  from numba import jit
+except:
+  def jit(**kwargs):
+    return lambda x: x
 
 #
 # decimate by n (boxcar filter), square, do m incoherent sums

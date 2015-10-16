@@ -72,7 +72,11 @@ def code(prn,chips,frac,incr,n):
 
 rz = np.array([1.0,0.0])
 
-from numba import jit
+try:
+  from numba import jit
+except:
+  def jit(**kwargs):
+    return lambda x: x
 
 @jit(nopython=True)
 def correlate(x,prn,chips,frac,incr,c):

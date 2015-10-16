@@ -31,7 +31,11 @@ def code(chips,frac,incr,n):
   x = c[idx]
   return 1.0 - 2.0*x
 
-from numba import jit
+try:
+  from numba import jit
+except:
+  def jit(**kwargs):
+    return lambda x: x
 
 @jit(nopython=True)
 def correlate(x,chips,frac,incr,c):
