@@ -69,7 +69,7 @@ x = xr+(1j)*xi
 
 # iterate over channels of interest
 
-for chan in range(-7,7):
+for chan in range(-7,8):
   metric,code,doppler = search(x,chan)
   if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
     print 'chan % 2d doppler % 7.1f metric %7.1f code_offset %7.2f' % (chan,doppler,metric,code)

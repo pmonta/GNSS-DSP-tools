@@ -71,6 +71,7 @@ x = xr+(1j)*xi
 # iterate over channels of interest
 
 for prn in range(1,38):
+#for prn in [1 2 3 4 5 6 7 8 9 10 11 12 13 14 30 31 32 33 34]:
   metric,code,doppler = search(x,prn)
   if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
     print 'prn %2d doppler % 7.1f metric %7.1f code_offset %6.1f' % (prn,doppler,metric,code)
