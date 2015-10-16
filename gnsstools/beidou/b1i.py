@@ -44,7 +44,7 @@ def b1i(prn):
 codes = {}
 
 def b1i_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = b1i(prn)
   return codes[prn]
 
@@ -71,5 +71,5 @@ def correlate(x,prn,chips,frac,incr,c):
 # test
 
 if __name__=='__main__':
-  print b1i_code(1)[0:20]
-  print b1i_code(2)[0:20]
+  print(b1i_code(1)[0:20])
+  print(b1i_code(2)[0:20])

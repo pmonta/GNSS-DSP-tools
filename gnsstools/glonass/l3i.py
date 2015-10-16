@@ -35,7 +35,7 @@ def make_l3i(n):
 codes = {}
 
 def l3i_code(n):
-  if not codes.has_key(n):
+  if n not in codes:
     codes[n] = make_l3i(n)
   return codes[n]
 

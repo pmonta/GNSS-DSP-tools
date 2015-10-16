@@ -35,7 +35,7 @@ def make_l3q(n):
 codes = {}
 
 def l3q_code(n):
-  if not codes.has_key(n):
+  if n not in codes:
     codes[n] = make_l3q(n)
   return codes[n]
 

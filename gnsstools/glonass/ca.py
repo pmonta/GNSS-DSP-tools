@@ -50,4 +50,4 @@ def correlate(x,chips,frac,incr,c):
 #
 
 if __name__=='__main__':
-  print c[0:20]
+  print(c[0:20])

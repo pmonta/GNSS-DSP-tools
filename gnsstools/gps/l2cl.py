@@ -58,7 +58,7 @@ def make_l2cl(prn):
 codes = {}
 
 def l2cl_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = make_l2cl(prn)
   return codes[prn]
 
@@ -129,11 +129,11 @@ def test_end_state(prn):
   return x
 
 if __name__=='__main__':
-  for prn in l2cl_end_state.keys():
+  for prn in list(l2cl_end_state.keys()):
     s = test_end_state(prn)
     t = l2cl_end_state[prn]
     if s!=t:
-      print "prn %d: ***mismatch*** %09o %09o" % (prn,s,t)
+      print("prn %d: ***mismatch*** %09o %09o" % (prn,s,t))
     else:
 #      print "prn %d: %09o %09o" % (prn,s,t)
       pass

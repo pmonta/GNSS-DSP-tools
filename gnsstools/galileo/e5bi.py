@@ -69,7 +69,7 @@ def make_e5bi(prn):
   return np.logical_xor(r1,r2)
 
 def e5bi_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = make_e5bi(prn)
   return codes[prn]
 
@@ -98,4 +98,4 @@ def correlate(x,prn,chips,frac,incr,c):
 if __name__=='__main__':
   for prn in [1,2,3,4]:
     x = e5bi_code(prn)
-    print x[0:24].astype('int')
+    print(x[0:24].astype('int'))

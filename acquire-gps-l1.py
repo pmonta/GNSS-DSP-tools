@@ -70,7 +70,7 @@ x = xr+(1j)*xi
 
 # iterate over PRNs of interest
 
-for prn in range(1,33)+[133,135,138]:
+for prn in list(range(1,33))+[133,135,138]:
   metric,code,doppler = search(x,prn)
   if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
-    print 'prn %3d doppler % 7.1f metric %4.2f code_offset %6.1f' % (prn,doppler,metric,code)
+    print('prn %3d doppler % 7.1f metric %4.2f code_offset %6.1f' % (prn,doppler,metric,code))

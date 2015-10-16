@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from e1b_strings import *
+from .e1b_strings import *
 
 chip_rate = 1023000
 code_length = 4092
@@ -22,7 +22,7 @@ def e1b_parse_hex(prn):
 codes = {}
 
 def e1b_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = e1b_parse_hex(prn)
   return codes[prn]
 
@@ -56,5 +56,5 @@ def correlate(x,prn,chips,frac,incr,c,boc11):
 # test
 
 if __name__=='__main__':
-  print e1b_code(1)[0:20]
-  print e1b_code(2)[0:20]
+  print(e1b_code(1)[0:20])
+  print(e1b_code(2)[0:20])

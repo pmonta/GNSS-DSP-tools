@@ -99,7 +99,7 @@ g2 = make_g2()
 codes = {}
 
 def ca_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = np.logical_xor(g1,circular_shift(g2,g2_delay[prn]))
   return codes[prn]
 
@@ -138,8 +138,8 @@ def first_10_chips(prn):
   return r
 
 def print_first_10_chips():
-  for prn in g2_delay.keys():
-    print '%d: %04o' % (prn,first_10_chips(prn))
+  for prn in list(g2_delay.keys()):
+    print('%d: %04o' % (prn,first_10_chips(prn)))
 
 if __name__=='__main__':
   print_first_10_chips()

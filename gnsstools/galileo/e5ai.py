@@ -83,7 +83,7 @@ def make_e5ai(prn):
   return np.logical_xor(r1,r2)
 
 def e5ai_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = make_e5ai(prn)
   return codes[prn]
 
@@ -112,4 +112,4 @@ def correlate(x,prn,chips,frac,incr,c):
 if __name__=='__main__':
   for prn in [1,2,3,4]:
     x = e5ai_code(prn)
-    print x[0:24].astype('int')
+    print(x[0:24].astype('int'))

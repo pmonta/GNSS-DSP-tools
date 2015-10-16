@@ -115,7 +115,7 @@ def first_12_chips(prn):
 
 def print_first_12_chips():
   for prn in range(1,211):
-    print '%d: %04o' % (prn,first_12_chips(prn))
+    print('%d: %04o' % (prn,first_12_chips(prn)))
 
 if __name__=='__main__':
   print_first_12_chips()

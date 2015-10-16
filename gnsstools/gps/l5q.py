@@ -105,7 +105,7 @@ def make_l5q(prn):
   return np.logical_xor(xa,xb_shift)
 
 def l5q_code(prn):
-  if not codes.has_key(prn):
+  if prn not in codes:
     codes[prn] = make_l5q(prn)
   return codes[prn]
 
@@ -145,11 +145,11 @@ def test_xb_start_state(prn):
   return y
 
 if __name__=='__main__':
-  for prn in xb_start_state.keys():
+  for prn in list(xb_start_state.keys()):
     s = test_xb_start_state(prn)
     t = xb_start_state[prn]
     if s!=t:
-      print "prn %d: ***mismatch*** %s %s" % (prn,s,t)
+      print("prn %d: ***mismatch*** %s %s" % (prn,s,t))
     else:
 #      print "prn %d: %s %s" % (prn,s,t)
       pass
