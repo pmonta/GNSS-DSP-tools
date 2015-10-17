@@ -1,1 +1,10 @@
 Tools for GNSS code generators, acquisition, and tracking, all in the python / numpy environment for easy prototyping
+
+The Numba JIT compiler is used to speed up some computational kernels such as NCOs and code generators.  Building Numba
+for a given platform requires some digging for the right versions of LLVM and other dependencies.  Another
+option is to install binaries from Anaconda, which is straightforward:
+
+http://conda.pydata.org/miniconda.html
+
+bash Miniconda3-latest-Linux-x86_64.sh
+conda install numpy scipy numba
