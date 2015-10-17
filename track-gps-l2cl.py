@@ -120,7 +120,7 @@ while True:
     n = int(fs*1.500*(2*l2cl.code_length-s.code_p)/l2cl.code_length)
 
   x = io.get_samples_complex(fp,n)
-  if x==None:
+  if x is None:
     break
 
   nco.mix(x,-coffset/fs,coffset_phase)

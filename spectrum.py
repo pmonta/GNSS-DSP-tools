@@ -49,7 +49,7 @@ while True:
   w = np.hanning(n)
   for k in range(ns):
     x = io.get_samples_complex(fp,n)
-    if x==None:
+    if x is None:
       sys.exit()
     z = fft.fft(x*w)
     p += np.real(z*np.conj(z))/ns

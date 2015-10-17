@@ -119,7 +119,7 @@ while True:
     n = int(fs*0.001*(2*e5bi.code_length-s.code_p)/e5bi.code_length)
 
   x = io.get_samples_complex(fp,n)
-  if x==None:
+  if x is None:
     break
 
   nco.mix(x,-coffset/fs,coffset_phase)

@@ -118,7 +118,7 @@ while True:
     n = int(fs*0.001*(2*ca.code_length-s.code_p)/ca.code_length)
 
   x = io.get_samples_complex(fp,n)
-  if x==None:
+  if x is None:
     break
 
   fm = -(coffset+437500*chan)/fs

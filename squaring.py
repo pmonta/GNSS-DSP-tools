@@ -27,7 +27,7 @@ y = np.zeros(2*b).astype('int16')
 
 while True:
   x = io.get_samples_complex(fp,b*n*m)
-  if x==None:
+  if x is None:
     break
 
   nco.mix(x,-coffset/fs,coffset_phase)
