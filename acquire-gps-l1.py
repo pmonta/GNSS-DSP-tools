@@ -24,7 +24,8 @@ def search(x,prn):
   for doppler in np.arange(-5000,5000,200):        # doppler bins
     q = np.zeros(n)
     w = nco.nco(-doppler/fs,0,n)
-    for block in range(80):                        # 80 incoherent sums
+#    for block in range(80):                        # 80 incoherent sums
+    for block in range(20):                        # 80 incoherent sums
       b = x[(block*n):((block+1)*n)]
       b = b*w
       r = fft.ifft(c*np.conj(fft.fft(b)))
@@ -51,7 +52,9 @@ coffset = float(sys.argv[3])  # offset to L1 carrier, Hz (positive or negative)
 
 # read first 85 ms of file
 
-n = int(fs*0.085)
+ms = 25
+
+n = int(fs*0.001*ms)
 fp = open(filename,"rb")
 x = io.get_samples_complex(fp,n)
 
@@ -64,13 +67,22 @@ nco.mix(x,-coffset/fs,0)
 fsr = 4096000.0/fs
 h = scipy.signal.firwin(161,1.5e6/(fs/2),window='hanning')
 x = scipy.signal.filtfilt(h,[1],x)
-xr = np.interp((1/fsr)*np.arange(85*4096),np.arange(len(x)),np.real(x))
-xi = np.interp((1/fsr)*np.arange(85*4096),np.arange(len(x)),np.imag(x))
+xr = np.interp((1/fsr)*np.arange(ms*4096),np.arange(len(x)),np.real(x))
+xi = np.interp((1/fsr)*np.arange(ms*4096),np.arange(len(x)),np.imag(x))
 x = xr+(1j)*xi
 
-# iterate over PRNs of interest
+# iterate (in parallel) over PRNs of interest
 
-for prn in list(range(1,33))+[133,135,138]:
+def worker(p):
+  x,prn = p
   metric,code,doppler = search(x,prn)
-  if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
-    print('prn %3d doppler % 7.1f metric %4.2f code_offset %6.1f' % (prn,doppler,metric,code))
+  return 'prn %3d doppler % 7.1f metric % 5.2f code_offset %6.1f' % (prn,doppler,metric,code)
+
+import multiprocessing as mp
+
+prns = list(range(1,33))+[133,135,138]
+cpus = mp.cpu_count()
+results = mp.Pool(cpus).map(worker, map(lambda prn: (x,prn),prns))
+
+for r in results:
+  print(r)
