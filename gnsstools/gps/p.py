@@ -77,7 +77,7 @@ def last_x2(prn,start,len):
   return np.logical_xor(p_x2a,p_x2b)
 
 def x2_delay(prn):
-  day = (prn-1)/37
+  day = (prn-1)//37
   prn = prn - 37*day
   return -prn + chip_rate*86400*day
 

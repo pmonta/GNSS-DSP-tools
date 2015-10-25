@@ -12,7 +12,7 @@ except:
 
 @jit(nopython=True)
 def squaring(x,r,n,m):
-  blocks = len(x)/(n*m)
+  blocks = len(x)//(n*m)
   for b in range(blocks):
     r[b] = 0j
     q = b*n*m

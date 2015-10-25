@@ -16,7 +16,7 @@ secondary_code = '842E9'
 def secondary_seq(s):
   x = np.zeros(20)
   for i in range(20):
-    nib = i/4
+    nib = i//4
     bit = 3-(i%4)
     x[i] = (int(s[nib],16)>>bit)&1
     x[i] = 1.0 - 2.0*x[i]

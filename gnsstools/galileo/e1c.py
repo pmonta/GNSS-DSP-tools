@@ -17,7 +17,7 @@ def e1c_parse_hex(prn):
   n = code_length
   y = np.zeros(n)
   for i in range(n):
-    nib = i/4
+    nib = i//4
     bit = 3-(i%4)
     y[i] = (int(s[nib],16)>>bit)&1
   return y
