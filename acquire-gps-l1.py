@@ -80,7 +80,7 @@ def worker(p):
 
 import multiprocessing as mp
 
-prns = list(range(1,33))+[133,135,138]
+prns = list(range(1,33))+[133,135,138,140]
 cpus = mp.cpu_count()
 results = mp.Pool(cpus).map(worker, map(lambda prn: (x,prn),prns))
 

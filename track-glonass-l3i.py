@@ -127,7 +127,8 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  print(block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-l3i.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late)
+  vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-l3i.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
+  print '%d %f %f %f %f %f %f %f %f' % vars
 
   block = block + 1
 #  if (block%100)==0:

@@ -31,6 +31,7 @@ class myplot:
     self.ax.relim()
     self.ax.autoscale_view(True,True,True)
     self.fig.canvas.draw()
+    plt.pause(0.1)
 
 # ./spectrum.py /dev/stdin 1584754875 69984000 2048 1000
 # ./spectrum.py /dev/stdin 1227727126 69984000 2048 1000
