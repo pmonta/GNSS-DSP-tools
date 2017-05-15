@@ -24,8 +24,7 @@ def search(x,prn):
   for doppler in np.arange(-5000,5000,200):        # doppler bins
     q = np.zeros(n)
     w = nco.nco(-doppler/fs,0,n)
-#    for block in range(80):                        # 80 incoherent sums
-    for block in range(20):                        # 80 incoherent sums
+    for block in range(80):                        # 80 incoherent sums
       b = x[(block*n):((block+1)*n)]
       b = b*w
       r = fft.ifft(c*np.conj(fft.fft(b)))
@@ -42,17 +41,13 @@ def search(x,prn):
 # main program
 #
 
-# parse command-line arguments
-# example:
-#   ./acquire-gps-l1.py data/gps-5001-l1_a.dat 68873142.857 -8662285.714
-
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz
 coffset = float(sys.argv[3])  # offset to L1 carrier, Hz (positive or negative)
 
 # read first 85 ms of file
 
-ms = 25
+ms = 85
 
 n = int(fs*0.001*ms)
 fp = open(filename,"rb")
