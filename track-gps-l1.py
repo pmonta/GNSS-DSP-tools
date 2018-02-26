@@ -41,9 +41,9 @@ def track(x,s):
 
   cf = (s.code_f+s.carrier_f/1540.0)/fs
 
-  p_early = ca.correlate(x, s.prn, 0, s.code_p-0.05, cf, ca.ca_code(prn))
+  p_early = ca.correlate(x, s.prn, 0, s.code_p-0.5, cf, ca.ca_code(prn))
   p_prompt = ca.correlate(x, s.prn, 0, s.code_p, cf, ca.ca_code(prn))
-  p_late = ca.correlate(x, s.prn, 0, s.code_p+0.05, cf, ca.ca_code(prn))
+  p_late = ca.correlate(x, s.prn, 0, s.code_p+0.5, cf, ca.ca_code(prn))
 
   if s.mode=='FLL_WIDE':
     fll_k = 3.0
