@@ -21,7 +21,7 @@ def search(x,prn):
   c = ca.code(prn,0,0,incr,n)                      # obtain samples of the C/A code
   c = fft.fft(c)
   m_metric,m_code,m_doppler = 0,0,0
-  for doppler in np.arange(-5000,5000,200):        # doppler bins
+  for doppler in np.arange(-7000,7000,200):        # doppler bins
     q = np.zeros(n)
     w = nco.nco(-doppler/fs,0,n)
     for block in range(80):                        # 80 incoherent sums
@@ -75,7 +75,7 @@ def worker(p):
 
 import multiprocessing as mp
 
-prns = list(range(1,33))+[133,135,138,140]
+prns = list(range(1,33))+[131,133,135,138]
 cpus = mp.cpu_count()
 results = mp.Pool(cpus).map(worker, map(lambda prn: (x,prn),prns))
 

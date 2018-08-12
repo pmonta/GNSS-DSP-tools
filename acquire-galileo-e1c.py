@@ -22,7 +22,7 @@ def search(x,prn):
   boc = nco.boc11(0,0,incr,n)
   c = fft.fft(np.concatenate((c*boc,np.zeros(n))))
   m_metric,m_code,m_doppler = 0,0,0
-  for doppler in np.arange(-4000,4000,50):         # doppler bins
+  for doppler in np.arange(-9000,9000,50):         # doppler bins
     q = np.zeros(2*n)
     w = nco.nco(-doppler/fs,0,2*n)
     for block in range(20):                        # 20 incoherent sums
@@ -66,9 +66,18 @@ xr = np.interp((1/fsr)*np.arange(85*8192),np.arange(len(x)),np.real(x))
 xi = np.interp((1/fsr)*np.arange(85*8192),np.arange(len(x)),np.imag(x))
 x = xr+(1j)*xi
 
-# iterate over channels of interest
+# iterate (in parallel) over PRNs of interest
 
-for prn in range(1,51):
+def worker(p):
+  x,prn = p
   metric,code,doppler = search(x,prn)
-  if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
-    print('prn %2d doppler % 7.1f metric %7.1f code_offset %6.1f' % (prn,doppler,metric,code))
+  return 'prn %2d doppler % 7.1f metric % 7.1f code_offset %6.1f' % (prn,doppler,metric,code)
+
+import multiprocessing as mp
+
+prns = list(range(1,51))
+cpus = mp.cpu_count()
+results = mp.Pool(cpus).map(worker, map(lambda prn: (x,prn),prns))
+
+for r in results:
+  print(r)

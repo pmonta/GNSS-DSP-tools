@@ -36,11 +36,11 @@ def search(x,chan,doppler,ca_code_phase):
 
 # parse command-line arguments
 # example:
-#   ./acquire-glonass-l2-p.py /dev/stdin 68873142.857 6283428.571 1 400 183.03
+#   ./acquire-glonass-l2-p.py /dev/stdin 69984000 18272874 1 400 183.03
 
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz
-coffset = float(sys.argv[3])  # offset to L1 GLONASS carrier channel 0, Hz (positive or negative)
+coffset = float(sys.argv[3])  # offset to L2 GLONASS carrier channel 0, Hz (positive or negative)
 chan = int(sys.argv[4])
 doppler = float(sys.argv[5])
 ca_code_phase = float(sys.argv[6])

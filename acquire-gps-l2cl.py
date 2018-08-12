@@ -33,11 +33,11 @@ def search(x,prn,doppler,l2cm_code_phase):
 
 # parse command-line arguments
 # example:
-#   ./acquire-gps-l2cl.py /dev/stdin 68873142.857 -12116571.429 31 -620 141.2
+#   ./acquire-gps-l2cl.py /dev/stdin 69984000 -127126 31 -620 141.2
 
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz
-coffset = float(sys.argv[3])  # offset to L1 carrier, Hz (positive or negative)
+coffset = float(sys.argv[3])  # offset to L2 carrier, Hz (positive or negative)
 prn = int(sys.argv[4])
 doppler = float(sys.argv[5])
 l2cm_code_phase = float(sys.argv[6])

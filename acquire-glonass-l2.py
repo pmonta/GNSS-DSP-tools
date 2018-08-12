@@ -21,7 +21,7 @@ def search(x,chan):
   c = ca.code(0,0,incr,n)                          # obtain samples of the C/A code
   c = fft.fft(c)
   m_metric,m_code,m_doppler = 0,0,0
-  for doppler in np.arange(-5000,5000,200):        # doppler bins
+  for doppler in np.arange(-7000,7000,200):        # doppler bins
     q = np.zeros(n)
     w = nco.nco(-(437500*chan+doppler)/fs,0,n)
     for block in range(80):                        # 80 incoherent sums
@@ -42,11 +42,11 @@ def search(x,chan):
 
 # parse command-line arguments
 # example:
-#   ./acquire-glonass-l2.py data/gps-5001-l1_a.dat 68873142.857 6283428.571
+#   ./acquire-glonass-l2.py /dev/stdin 69984000 18272874
 
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz
-coffset = float(sys.argv[3])  # offset to L1 GLONASS carrier channel 0, Hz (positive or negative)
+coffset = float(sys.argv[3])  # offset to L2 GLONASS carrier channel 0, Hz (positive or negative)
 
 # read first 85 ms of file
 
@@ -67,9 +67,18 @@ xr = np.interp((1/fsr)*np.arange(85*16384),np.arange(len(x)),np.real(x))
 xi = np.interp((1/fsr)*np.arange(85*16384),np.arange(len(x)),np.imag(x))
 x = xr+(1j)*xi
 
-# iterate over channels of interest
+# iterate (in parallel) over channels of interest
 
-for chan in range(-7,8):
+def worker(p):
+  x,chan = p
   metric,code,doppler = search(x,chan)
-  if metric>0.0:    # fixme: need a proper metric and threshold; and estimate cn0
-    print('chan % 2d doppler % 7.1f metric %7.1f code_offset %7.2f' % (chan,doppler,metric,code))
+  return 'chan % 2d doppler % 7.1f metric % 7.1f code_offset %7.2f' % (chan,doppler,metric,code)
+
+import multiprocessing as mp
+
+chans = list(range(-7,8))
+cpus = mp.cpu_count()
+results = mp.Pool(cpus).map(worker, map(lambda chan: (x,chan),chans))
+
+for r in results:
+  print(r)
