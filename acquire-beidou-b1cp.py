@@ -44,7 +44,7 @@ def search(x,prn):
 
 # parse command-line arguments
 # example:
-#   ./acquire-beidou-b1cp.py data/gps-5001-l1_a.dat 69984000 -9334875
+#   ./acquire-beidou-b1cp.py /dev/stdin 69984000 -9334875
 
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz

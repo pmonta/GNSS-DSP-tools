@@ -43,7 +43,7 @@ def search(x,prn):
 
 # parse command-line arguments
 # example:
-#   ./acquire-glonass-l3q.py /dev/stdin 68873142.857 -3255000.000
+#   ./acquire-glonass-l3q.py /dev/stdin 69984000 10383375
 
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz

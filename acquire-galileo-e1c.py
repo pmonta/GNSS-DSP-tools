@@ -44,7 +44,7 @@ def search(x,prn):
 
 # parse command-line arguments
 # example:
-#   ./acquire-galileo-e1c.py data/gps-5001-l1_a.dat 68873142.857 -8662285.714
+#   ./acquire-galileo-e1c.py /dev/stdin 69984000 -9334875
 
 filename = sys.argv[1]        # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])       # sampling rate, Hz
