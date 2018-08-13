@@ -139,5 +139,5 @@ if __name__=='__main__':
     if s!=t:
       print("prn %d: ***mismatch*** %09o %09o" % (prn,s,t))
     else:
-#      print "prn %d: %09o %09o" % (prn,s,t)
+#      print("prn %d: %09o %09o" % (prn,s,t))
       pass

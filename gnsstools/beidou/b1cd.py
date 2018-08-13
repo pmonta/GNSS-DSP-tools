@@ -78,7 +78,7 @@ def correlate(x,prn,chips,frac,incr,c,boc11):
 
 def chips2octal(x):
   s = ''
-  for i in range(len(x)/3):
+  for i in range(len(x)//3):
     d = 4*x[3*i] + 2*x[3*i+1] + x[3*i+2]
     s = s + '%o'%d
   return s

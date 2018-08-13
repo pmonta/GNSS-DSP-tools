@@ -139,7 +139,7 @@ while True:
   p_prompt,s = track(x,s)
 
   vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-ca.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late, s.code_cyc, s.code_p, s.carrier_cyc, s.carrier_p, samp
-  print '%d %f %f %f %f %f %f %f %f %d %f %d %f %d' % vars
+  print('%d %f %f %f %f %f %f %f %f %d %f %d %f %d' % vars)
 
   block = block + 1
 #  if (block%100)==0:

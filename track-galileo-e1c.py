@@ -130,7 +130,7 @@ while True:
     a,b = int(j*n/4),int((j+1)*n/4)
     p_prompt,s = track(x[a:b],s)
     vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-e1c.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
-    print '%d %f %f %f %f %f %f %f %f' % vars
+    print('%d %f %f %f %f %f %f %f %f' % vars)
 
     block = block + 1
 #    if (block%100)==0:

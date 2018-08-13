@@ -155,5 +155,5 @@ if __name__=='__main__':
     if s!=t:
       print("prn %d: ***mismatch*** %s %s" % (prn,s,t))
     else:
-#      print "prn %d: %s %s" % (prn,s,t)
+#      print("prn %d: %s %s" % (prn,s,t))
       pass
