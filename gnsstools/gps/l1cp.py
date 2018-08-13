@@ -25,6 +25,7 @@ l1cp_params = {
   53: (4539,4674),  54: (4535,10035),  55: (4458,4504),  56: (4197,5),
   57: (4096,9937),  58: (3484,430),    59: (3481,5),     60: (3393,355),
   61: (3175,909),   62: (2360,1622),   63: (1852,6284),
+  193: (4311,9864),  194: (5024,9753),  195: (4352,9859),  199: (3646,164),
 }
 
 N = 10223
@@ -108,6 +109,7 @@ def secondary_code(prn):
   return secondary_codes[prn]
 
 boc11 = np.array([1.0,-1.0])
+tmboc_pattern = np.array([1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0])
 
 try:
   from numba import jit
@@ -121,11 +123,18 @@ def correlate(x,prn,chips,frac,incr,c,boc11):
   p = 0.0j
   cp = (chips+frac)%code_length
   bp = (2*(chips+frac))%2
+  bp6 = (12*(chips+frac))%2
+  u = int(cp%33)
   for i in range(n):
-    boc = boc11[int(bp)]
+    if tmboc_pattern[u]:
+      boc = boc11[int(bp6)]
+    else:
+      boc = boc11[int(bp)]
     p += x[i]*(1.0-2.0*c[int(cp)])*boc
     cp = (cp+incr)%code_length
     bp = (bp+2*incr)%2
+    bp6 = (bp6+12*incr)%2
+    u = int(cp%33)
   return p
 
 # test
