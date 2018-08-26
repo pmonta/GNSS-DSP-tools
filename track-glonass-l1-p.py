@@ -25,7 +25,7 @@ class tracking_state:
 
 # tracking loops
 
-def track(x,s):
+def track(x,s,chan):
   n = len(x)
   fs = s.fs
 
@@ -33,7 +33,9 @@ def track(x,s):
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
   s.carrier_p = np.mod(s.carrier_p,1)
 
-  cf = (s.code_f+s.carrier_f/313.50)/fs
+  rf_carrier = 1602.0 + 0.5625*chan
+  scale_factor = rf_carrier/5.11
+  cf = (s.code_f+s.carrier_f/scale_factor)/fs
 
   p_early = p.correlate(x, 0, s.code_p-0.5, cf, p.p_code())
   p_prompt = p.correlate(x, 0, s.code_p, cf, p.p_code())
@@ -128,7 +130,7 @@ while True:
 
   for j in range(1000):
     a,b = int(j*n/1000),int((j+1)*n/1000)
-    p_prompt,s = track(x[a:b],s)
+    p_prompt,s = track(x[a:b],s,chan)
     vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-p.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
     print('%d %f %f %f %f %f %f %f %f' % vars)
 

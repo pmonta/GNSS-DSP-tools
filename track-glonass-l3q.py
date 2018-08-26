@@ -34,7 +34,7 @@ def track(x,s):
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
   s.carrier_p = np.mod(s.carrier_p,1)
 
-  cf = (s.code_f+s.carrier_f/115.0)/fs
+  cf = (s.code_f+s.carrier_f/117.5)/fs
 
   p_early = l3q.correlate(x, s.prn, 0, s.code_p-0.5, cf, l3q.l3q_code(prn))
   p_prompt = l3q.correlate(x, s.prn, 0, s.code_p, cf, l3q.l3q_code(prn))
