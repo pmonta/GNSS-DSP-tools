@@ -44,14 +44,14 @@ def track(x,s):
     fll_k = 3.0
     a = p_prompt
     b = s.prompt1
-    e = discriminator.fll_atan2(a,b)
+    e = discriminator.fll_atan(a,b)
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='FLL_NARROW':
     fll_k = 0.2
     a = p_prompt
     b = s.prompt1
-    e = discriminator.fll_atan2(a,b)
+    e = discriminator.fll_atan(a,b)
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='PLL':
@@ -107,7 +107,8 @@ code_offset += n*1000.0*b2ap.code_length/fs
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
   code_p=code_offset, code_f=b2ap.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
-  mode='PLL')
+#  mode='PLL')
+  mode='FLL_WIDE')
 
 block = 0
 coffset_phase = 0.0
@@ -133,5 +134,5 @@ while True:
   block = block + 1
 #  if (block%100)==0:
 #    sys.stderr.write("%d\n"%block)
-#  if block==2000:
-#    s.mode = 'PLL'
+  if block==300:
+    s.mode = 'PLL'

@@ -3,7 +3,7 @@
 import sys
 import numpy as np
 
-import gnsstools.beidou.b2ad as b2ad
+import gnsstools.beidou.b2bq as b2bq
 import gnsstools.nco as nco
 import gnsstools.io as io
 import gnsstools.discriminator as discriminator
@@ -23,6 +23,8 @@ class tracking_state:
     self.carrier_e1 = 0
     self.code_e1 = 0
     self.eml = 0
+    self.chips = np.zeros(10230).astype('complex')
+    self.nframe = 0
 
 # tracking loops
 
@@ -34,11 +36,19 @@ def track(x,s):
   s.carrier_p = s.carrier_p - n*s.carrier_f/fs
   s.carrier_p = np.mod(s.carrier_p,1)
 
-  cf = (s.code_f+s.carrier_f/115.0)/fs
+  cf = (s.code_f+s.carrier_f/118.0)/fs
 
-  p_early = b2ad.correlate(x, s.prn, 0, s.code_p-0.5, cf, b2ad.b2ad_code(prn))
-  p_prompt = b2ad.correlate(x, s.prn, 0, s.code_p, cf, b2ad.b2ad_code(prn))
-  p_late = b2ad.correlate(x, s.prn, 0, s.code_p+0.5, cf, b2ad.b2ad_code(prn))
+  p_early = b2bq.correlate(x, s.prn, 0, s.code_p-0.5, cf, b2bq.b2bq_code(prn))
+  p_prompt = b2bq.correlate(x, s.prn, 0, s.code_p, cf, b2bq.b2bq_code(prn))
+  p_late = b2bq.correlate(x, s.prn, 0, s.code_p+0.5, cf, b2bq.b2bq_code(prn))
+
+  if s.nframe>800:
+    if np.real(p_prompt)>0:
+      b2bq.accum(x, s.code_p, cf, s.chips)
+    else:
+      b2bq.accum(-x, s.code_p, cf, s.chips)
+
+  s.nframe += 1
 
   if s.mode=='FLL_WIDE':
     fll_k = 3.0
@@ -79,7 +89,7 @@ def track(x,s):
   s.code_e1 = e
 
   s.code_p = s.code_p + n*cf
-  s.code_p = np.mod(s.code_p,b2ad.code_length)
+  s.code_p = np.mod(s.code_p,b2bq.code_length)
 
   return p_prompt,s
 
@@ -89,7 +99,7 @@ def track(x,s):
 
 # parse command-line arguments
 # example:
-#   ./track-beidou-b2ad.py /dev/stdin 69984000 0 12 2000.0 1855.6
+#   ./track-beidou-b2bq.py /dev/stdin 69984000 0 12 2000.0 1855.6
 
 filename = sys.argv[1]             # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
 fs = float(sys.argv[2])            # sampling rate, Hz
@@ -100,24 +110,24 @@ code_offset = float(sys.argv[6])   # initial code offset from acquisition
 
 fp = open(filename,"rb")
 
-n = int(fs*0.001*((b2ad.code_length-code_offset)/b2ad.code_length))  # align with 1 ms code boundary
+n = int(fs*0.001*((b2bq.code_length-code_offset)/b2bq.code_length))  # align with 1 ms code boundary
 x = io.get_samples_complex(fp,n)
-code_offset += n*1000.0*b2ad.code_length/fs
+code_offset += n*1000.0*b2bq.code_length/fs
 
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
-  code_p=code_offset, code_f=b2ad.chip_rate, code_i=0,
+  code_p=code_offset, code_f=b2bq.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
-  mode='FLL_WIDE')
-#  mode='PLL')
+#  mode='FLL_WIDE')
+  mode='PLL')
 
 block = 0
 coffset_phase = 0.0
 
 while True:
-  if s.code_p<b2ad.code_length/2:
-    n = int(fs*0.001*(b2ad.code_length-s.code_p)/b2ad.code_length)
+  if s.code_p<b2bq.code_length/2:
+    n = int(fs*0.001*(b2bq.code_length-s.code_p)/b2bq.code_length)
   else:
-    n = int(fs*0.001*(2*b2ad.code_length-s.code_p)/b2ad.code_length)
+    n = int(fs*0.001*(2*b2bq.code_length-s.code_p)/b2bq.code_length)
 
   x = io.get_samples_complex(fp,n)
   if x is None:
@@ -128,11 +138,14 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-b2ad.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
+  vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-b2bq.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
   print('%d %f %f %f %f %f %f %f %f' % vars)
 
   block = block + 1
 #  if (block%100)==0:
 #    sys.stderr.write("%d\n"%block)
-  if block==300:
-    s.mode = 'PLL'
+#  if block==300:
+#    s.mode = 'PLL'
+
+#for i in range(10230):
+#  print('%f %f'%(np.real(s.chips[i]),np.imag(s.chips[i])))
