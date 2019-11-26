@@ -75,7 +75,7 @@ def worker(p):
 import multiprocessing as mp
 
 #prns = list(range(1,64))
-prns = [21,48]
+prns = list(b2bi.b2bi_strings.keys())
 cpus = mp.cpu_count()
 results = mp.Pool(cpus).map(worker, map(lambda prn: (x,prn),prns))
 
