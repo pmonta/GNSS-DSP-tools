@@ -51,7 +51,7 @@ Examples:
   Acquire all GPS PRNs using standard input with sample rate 69.984 MHz and carrier offset -9.334875 MHz:
     acquire-gps-l1.py /dev/stdin 69984000 -9334875
   Acquire all GPS and WAAS PRNs with a custom doppler search grid and integration time of 20 ms:
-    acquire-gps-l1.py --prn 1-32,131,133,135,138 --doppler-search -6000,6000,500 --ms 20 /dev/stdin 69984000 -9334875
+    acquire-gps-l1.py --prn 1-32,131,133,135,138 --doppler-search -6000,6000,500 --time 20 /dev/stdin 69984000 -9334875
   Acquire all GPS and QZSS PRNs from raw sample file "recording.iq":
     acquire-gps-l1.py --prn 1-32,193,194,195,199 recording.iq 69984000 -9334875
 
@@ -64,7 +64,7 @@ parser.disable_interspersed_args()
 
 parser.add_option("--prn", default="1-32", help="PRNs to search, e.g. 1,3,7-14,31 (default %default)")
 parser.add_option("--doppler-search", metavar="MIN,MAX,INCR", default="-7000,7000,200", help="Doppler search grid: min,max,increment (default %default)")
-parser.add_option("--ms", type="int", default=80, help="number of 1 ms incoherent sums (default %default)")
+parser.add_option("--time", type="int", default=80, help="integration time in milliseconds (default %default)")
 
 (options, args) = parser.parse_args()
 
@@ -73,7 +73,7 @@ fs = float(args[1])
 coffset = float(args[2])
 prns = util.parse_list_ranges(options.prn)
 doppler_search = util.parse_list_floats(options.doppler_search)
-ms = options.ms
+ms = options.time
 
 # read first portion of file
 
