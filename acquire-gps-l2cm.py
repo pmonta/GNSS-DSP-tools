@@ -50,7 +50,7 @@ Acquire GPS L2CM signals
 
 Examples:
   Acquire all GPS PRNs using standard input with sample rate 69.984 MHz and carrier offset -0.127126 MHz:
-    acquire-gps-l2cm.py /dev/stdin 69984000 -9334875
+    acquire-gps-l2cm.py /dev/stdin 69984000 -127126
 
 Arguments:
   input_filename    input data file, i/q interleaved, 8 bit signed
