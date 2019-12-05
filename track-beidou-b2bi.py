@@ -42,11 +42,11 @@ def track(x,s):
   p_prompt = b2bi.correlate(x, s.prn, 0, s.code_p, cf, b2bi.b2bi_code(prn))
   p_late = b2bi.correlate(x, s.prn, 0, s.code_p+0.5, cf, b2bi.b2bi_code(prn))
 
-  if s.nframe>800:
+  if s.nframe>200:
     if np.real(p_prompt)>0:
-      b2bi.accum(x, s.code_p, cf, s.chips)
+      nco.accum(x, s.code_p, cf, s.chips, b2bi.code_length)
     else:
-      b2bi.accum(-x, s.code_p, cf, s.chips)
+      nco.accum(-x, s.code_p, cf, s.chips, b2bi.code_length)
 
   s.nframe += 1
 
@@ -147,5 +147,7 @@ while True:
 #  if block==300:
 #    s.mode = 'PLL'
 
-#for i in range(10230):
-#  print('%f %f'%(np.real(s.chips[i]),np.imag(s.chips[i])))
+f = open("track-chips.dat","w")
+for i in range(10230):
+  f.write('%f %f\n'%(np.real(s.chips[i]),np.imag(s.chips[i])))
+f.close()

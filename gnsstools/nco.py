@@ -39,3 +39,11 @@ def mix_(x,f,p,tab):
 
 def mix(x,f,p):
   mix_(x,f,p,nco_table)
+
+@jit(nopython=True)
+def accum(x, cp, incr, a, code_length):
+  n = len(x)
+  for i in range(n):
+    idx = int(cp)
+    a[idx] += x[i]
+    cp = (cp+incr)%code_length
