@@ -66,7 +66,7 @@ parser.add_option("--time", type="int", default=80, help="integration time in mi
 filename = args[0]
 fs = float(args[1])
 coffset = float(args[2])
-chans = util.parse_list_ranges_altsep(options.channel)
+chans = util.parse_list_ranges(options.channel,sep=':')
 doppler_search = util.parse_list_floats(options.doppler_search)
 ms = options.time
 
