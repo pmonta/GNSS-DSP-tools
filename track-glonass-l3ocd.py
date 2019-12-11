@@ -4,7 +4,7 @@ import optparse
 
 import numpy as np
 
-import gnsstools.glonass.l3i as l3i
+import gnsstools.glonass.l3ocd as l3ocd
 import gnsstools.nco as nco
 import gnsstools.io as io
 import gnsstools.discriminator as discriminator
@@ -38,9 +38,9 @@ def track(x,s):
 
   cf = (s.code_f+s.carrier_f/117.5)/fs
 
-  p_early = l3i.correlate(x, s.prn, 0, s.code_p-0.5, cf, l3i.l3i_code(prn))
-  p_prompt = l3i.correlate(x, s.prn, 0, s.code_p, cf, l3i.l3i_code(prn))
-  p_late = l3i.correlate(x, s.prn, 0, s.code_p+0.5, cf, l3i.l3i_code(prn))
+  p_early = l3ocd.correlate(x, s.prn, 0, s.code_p-0.5, cf, l3ocd.l3ocd_code(prn))
+  p_prompt = l3ocd.correlate(x, s.prn, 0, s.code_p, cf, l3ocd.l3ocd_code(prn))
+  p_late = l3ocd.correlate(x, s.prn, 0, s.code_p+0.5, cf, l3ocd.l3ocd_code(prn))
 
   if s.mode=='FLL_WIDE':
     fll_k = 3.0
@@ -81,7 +81,7 @@ def track(x,s):
   s.code_e1 = e
 
   s.code_p = s.code_p + n*cf
-  s.code_p = np.mod(s.code_p,l3i.code_length)
+  s.code_p = np.mod(s.code_p,l3ocd.code_length)
 
   return p_prompt,s
 
@@ -89,15 +89,15 @@ def track(x,s):
 # main program
 #
 
-parser = optparse.OptionParser(usage="""track-glonass-l3i.py [options] input_filename sample_rate carrier_offset PRN doppler code_offset
+parser = optparse.OptionParser(usage="""track-glonass-l3ocd.py [options] input_filename sample_rate carrier_offset PRN doppler code_offset
 
-Track GLONASS L3I signal
+Track GLONASS L3OCd signal
 
 Examples:
   Track with default options:
-    track-glonass-l3i.py /dev/stdin 69984000 10383375 31 800.0 126.7
+    track-glonass-l3ocd.py /dev/stdin 69984000 10383375 31 800.0 126.7
   Track with pure PLL (no FLL intervals at the start) and with a specified carrier phase:
-    track-glonass-l3i.py --carrier-phase 0.214 /dev/stdin 69984000 10383375 31 800.0 126.7
+    track-glonass-l3ocd.py --carrier-phase 0.214 /dev/stdin 69984000 10383375 31 800.0 126.7
 
 Arguments:
   input_filename    input data file, i/q interleaved, 8 bit signed
@@ -130,12 +130,12 @@ fll_wide_time,fll_narrow_time = loop_dwells
 
 fp = open(filename,"rb")
 
-n = int(fs*0.001*((l3i.code_length-code_offset)/l3i.code_length))  # align with 1 ms code boundary
+n = int(fs*0.001*((l3ocd.code_length-code_offset)/l3ocd.code_length))  # align with 1 ms code boundary
 x = io.get_samples_complex(fp,n)
-code_offset += n*1000.0*l3i.code_length/fs
+code_offset += n*1000.0*l3ocd.code_length/fs
 
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
-  code_p=code_offset, code_f=l3i.chip_rate, code_i=0,
+  code_p=code_offset, code_f=l3ocd.chip_rate, code_i=0,
   carrier_p=0, carrier_f=doppler, carrier_i=0,
   mode='FLL_WIDE')
 
@@ -148,10 +148,10 @@ while True:
   if block>=fll_wide_time+fll_narrow_time:
     s.mode = 'PLL'
 
-  if s.code_p<l3i.code_length/2:
-    n = int(fs*0.001*(l3i.code_length-s.code_p)/l3i.code_length)
+  if s.code_p<l3ocd.code_length/2:
+    n = int(fs*0.001*(l3ocd.code_length-s.code_p)/l3ocd.code_length)
   else:
-    n = int(fs*0.001*(2*l3i.code_length-s.code_p)/l3i.code_length)
+    n = int(fs*0.001*(2*l3ocd.code_length-s.code_p)/l3ocd.code_length)
 
   x = io.get_samples_complex(fp,n)
   if x is None:
@@ -162,7 +162,7 @@ while True:
   coffset_phase = np.mod(coffset_phase,1)
 
   p_prompt,s = track(x,s)
-  vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-l3i.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
+  vars = block, np.real(p_prompt), np.imag(p_prompt), s.carrier_f, s.code_f-l3ocd.chip_rate, (180/np.pi)*np.angle(p_prompt), s.early, s.prompt, s.late
   print('%d %f %f %f %f %f %f %f %f' % vars)
 
   block = block + 1

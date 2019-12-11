@@ -6,7 +6,7 @@ import numpy as np
 import scipy.signal
 import scipy.fftpack as fft
 
-import gnsstools.glonass.l3q as l3q
+import gnsstools.glonass.l3ocp as l3ocp
 import gnsstools.nco as nco
 import gnsstools.io as io
 import gnsstools.util as util
@@ -19,8 +19,8 @@ def search(x,prn,doppler_search,ms):
   fs = 3*10230000.0
   n = 3*10230                                       # 1 ms coherent integration
   doppler_min, doppler_max, doppler_incr = doppler_search
-  incr = float(l3q.code_length)/n
-  c = l3q.code(prn,0,0,incr,n)                     # obtain samples of the L3-I code
+  incr = float(l3ocp.code_length)/n
+  c = l3ocp.code(prn,0,0,incr,n)                     # obtain samples of the L3-I code
   c = fft.fft(np.concatenate((c,np.zeros(n))))
   m_metric,m_code,m_doppler = 0,0,0
   for doppler in np.arange(doppler_min,doppler_max,doppler_incr):        # doppler bins
@@ -34,22 +34,22 @@ def search(x,prn,doppler_search,ms):
     idx = np.argmax(q)
     if q[idx]>m_metric:
       m_metric = q[idx]
-      m_code = l3q.code_length*(float(idx)/n)
+      m_code = l3ocp.code_length*(float(idx)/n)
       m_doppler = doppler
-  m_code = m_code%l3q.code_length
+  m_code = m_code%l3ocp.code_length
   return m_metric,m_code,m_doppler
 
 #
 # main program
 #
 
-parser = optparse.OptionParser(usage="""acquire-gps-l3q.py [options] input_filename sample_rate carrier_offset
+parser = optparse.OptionParser(usage="""acquire-gps-l3ocp.py [options] input_filename sample_rate carrier_offset
 
-Acquire GLONASS L3Q signals
+Acquire GLONASS L3OCp signals
 
 Examples:
   Acquire all GLONASS channels using standard input with sample rate 69.984 MHz and carrier offset 10.383375 MHz:
-    acquire-glonass-l3q.py /dev/stdin 69984000 10383375
+    acquire-glonass-l3ocp.py /dev/stdin 69984000 10383375
 
 Arguments:
   input_filename    input data file, i/q interleaved, 8 bit signed
