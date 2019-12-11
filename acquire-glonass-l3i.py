@@ -58,7 +58,7 @@ Arguments:
 
 parser.disable_interspersed_args()
 
-parser.add_option("--prn", default="1-127", help="PRNs to search, e.g. 30,33 (default %default)")
+parser.add_option("--prn", default="0-63", help="PRNs to search, e.g. 1,3-8,30 (default %default)")
 parser.add_option("--doppler-search", metavar="MIN,MAX,INCR", default="-7000,7000,200", help="Doppler search grid: min,max,increment (default %default)")
 parser.add_option("--time", type="int", default=80, help="integration time in milliseconds (default %default)")
 

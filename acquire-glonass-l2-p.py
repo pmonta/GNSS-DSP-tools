@@ -26,7 +26,7 @@ def search(x,chan,doppler,ca_code_phase,ms):
       xp = x[n*block:n*(block+1)]*c*w
       q = q + np.absolute(np.sum(xp))
       cp += n*incr
-    print('%f %f'%(k,q))
+#    print('%f %f'%(k,q))
     if q>m_metric:
       m_metric = q
       m_k = k

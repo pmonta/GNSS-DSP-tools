@@ -23,7 +23,7 @@ def seq(n):
   return s
 
 def make_l3i(n):
-  g3 = seq(n+32)
+  g3 = seq(n)
   g2 = [0,0,1,1,0,1,0,0,1,1,1,0,0,0]
   x = np.zeros(code_length)
   for i in range(code_length):

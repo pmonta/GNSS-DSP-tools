@@ -23,7 +23,7 @@ def seq(n):
   return s
 
 def make_l3q(n):
-  g1 = seq(n)
+  g1 = seq(n+64)
   g2 = [0,0,1,1,0,1,0,0,1,1,1,0,0,0]
   x = np.zeros(code_length)
   for i in range(code_length):
