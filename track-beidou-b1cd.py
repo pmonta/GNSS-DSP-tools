@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import sys
+import optparse
+
 import numpy as np
 
 import gnsstools.beidou.b1cd as b1cd
 import gnsstools.nco as nco
 import gnsstools.io as io
 import gnsstools.discriminator as discriminator
+import gnsstools.util as util
 
 class tracking_state:
   def __init__(self,fs,prn,code_p,code_f,code_i,carrier_p,carrier_f,carrier_i,mode):
@@ -41,14 +43,14 @@ def track(x,s):
   p_late = b1cd.correlate(x, s.prn, 0, s.code_p+0.2, cf, b1cd.b1cd_code(prn), b1cd.boc11)
 
   if s.mode=='FLL_WIDE':
-    fll_k = 2.0
+    fll_k = 3.0
     a = p_prompt
     b = s.prompt1
     e = discriminator.fll_atan(a,b)
     s.carrier_f = s.carrier_f + fll_k*e
     s.prompt1 = p_prompt
   elif s.mode=='FLL_NARROW':
-    fll_k = 0.6
+    fll_k = 0.8
     a = p_prompt
     b = s.prompt1
     e = discriminator.fll_atan(a,b)
@@ -56,7 +58,7 @@ def track(x,s):
     s.prompt1 = p_prompt
   elif s.mode=='PLL':
     pll_k1 = 0.1
-    pll_k2 = 5.0
+    pll_k2 = 3.5
     e = discriminator.pll_costas(p_prompt)
     e1 = s.carrier_e1
     s.carrier_f = s.carrier_f + pll_k1*e + pll_k2*(e-e1)
@@ -87,16 +89,44 @@ def track(x,s):
 # main program
 #
 
-# parse command-line arguments
-# example:
-#   ./track-beidou-b1cd.py /dev/stdin 69984000 -9334875 12 -350 1274.2
+parser = optparse.OptionParser(usage="""track-beidou-b1cd.py [options] input_filename sample_rate carrier_offset PRN doppler code_offset
 
-filename = sys.argv[1]             # input data, raw file, i/q interleaved, 8 bit signed (two's complement)
-fs = float(sys.argv[2])            # sampling rate, Hz
-coffset = float(sys.argv[3])       # offset to B1C carrier, Hz (positive or negative)
-prn = int(sys.argv[4])             # PRN code
-doppler = float(sys.argv[5])       # initial doppler estimate from acquisition
-code_offset = float(sys.argv[6])   # initial code offset from acquisition
+Track BeiDou B1Cd signal
+
+Examples:
+  Track with default options:
+    track-beidou-b1cd.py /dev/stdin 69984000 -9334875 31 1200.0 831.15
+  Track with pure PLL (no FLL intervals at the start) and with a specified carrier phase:
+    track-beidou-b1cd.py --carrier-phase 0.214 /dev/stdin 69984000 -9334875 31 1200.0 831.15
+
+Arguments:
+  input_filename    input data file, i/q interleaved, 8 bit signed
+  sample_rate       sampling rate in Hz
+  carrier_offset    offset to L1 carrier in Hz (positive or negative)
+  PRN               PRN
+  doppler           Doppler estimate from acquisition
+  code_offset       Code-offset estimate from acquisition""")
+
+parser.disable_interspersed_args()
+
+parser.add_option("--loop-dwells", default="500,500", help="initial time intervals for wide FLL, then narrow FLL, in milliseconds (default %default)")
+parser.add_option("--carrier-phase", help="initial carrier phase in cycles (disables FLL: uses PLL from the start)")
+
+(options, args) = parser.parse_args()
+
+filename = args[0]
+fs = float(args[1])
+coffset = float(args[2])
+prn = int(args[3])
+doppler = float(args[4])
+code_offset = float(args[5])
+loop_dwells = util.parse_list_floats(options.loop_dwells)
+carrier_p = 0.0
+if options.carrier_phase is not None:
+  carrier_p = float(options.carrier_phase)
+  loop_dwells = 0,0
+
+fll_wide_time,fll_narrow_time = loop_dwells
 
 fp = open(filename,"rb")
 
@@ -106,13 +136,18 @@ code_offset += n*100.0*b1cd.code_length/fs
 
 s = tracking_state(fs=fs, prn=prn,                    # initialize tracking state
   code_p=code_offset, code_f=b1cd.chip_rate, code_i=0,
-  carrier_p=0, carrier_f=doppler, carrier_i=0,
-  mode='PLL')
+  carrier_p=carrier_p, carrier_f=doppler, carrier_i=0,
+  mode='FLL_WIDE')
 
 block = 0
 coffset_phase = 0.0
 
 while True:
+  if block>=fll_wide_time:
+    s.mode = 'FLL_NARROW'
+  if block>=fll_wide_time+fll_narrow_time:
+    s.mode = 'PLL'
+
   if s.code_p<b1cd.code_length/2:
     n = int(fs*0.01*(b1cd.code_length-s.code_p)/b1cd.code_length)
   else:
@@ -133,9 +168,3 @@ while True:
     print('%d %f %f %f %f %f %f %f %f' % vars)
 
     block = block + 1
-#    if (block%100)==0:
-#      sys.stderr.write("%d\n"%block)
-#    if block==500:
-#      s.mode = 'FLL_NARROW'
-#    if block==1000:
-#      s.mode = 'PLL'
