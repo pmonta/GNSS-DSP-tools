@@ -8,9 +8,6 @@ from sympy.ntheory import legendre_symbol
 chip_rate = 10230000
 code_length = 10230
 
-secondary_code = np.array([0,0,0,1,0])
-secondary_code = 1.0 - 2.0*secondary_code
-
 b2ap_g2_initial = {
    1: "1000000100101",   2: "1000000110100",   3: "1000010101101",   4: "1000101001111",
    5: "1000101010101",   6: "1000110101110",   7: "1000111101110",   8: "1000111111011",
