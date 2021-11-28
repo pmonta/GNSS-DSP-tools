@@ -89,8 +89,8 @@ def make_l5i_xa():
 
 def make_l5i_xb():
   xb = [1,1,1,1,1,1,1,1,1,1,1,1,1]
-  y = np.zeros(code_length)
-  for i in range(code_length):
+  y = np.zeros(8191)
+  for i in range(8191):
     y[i] = xb[12]
     xb = l5i_xb_shift(xb)
   return y
@@ -103,7 +103,7 @@ codes = {}
 def make_l5i(prn):
   xb_offset = l5i_init[prn]
   n = code_length
-  xb_shift = xb[np.mod(np.arange(xb_offset,xb_offset+n),n)]
+  xb_shift = xb[np.mod(np.arange(xb_offset,xb_offset+n),8191)]
   return np.logical_xor(xa,xb_shift)
 
 def l5i_code(prn):
