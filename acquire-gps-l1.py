@@ -89,7 +89,7 @@ nco.mix(x,-coffset/fs,0)
 # resample to 4.096 MHz
 
 fsr = 4096000.0/fs
-h = scipy.signal.firwin(161,1.5e6/(fs/2),window='hanning')
+h = scipy.signal.firwin(161,1.5e6/(fs/2),window='hann')
 x = scipy.signal.filtfilt(h,[1],x)
 xr = np.interp((1/fsr)*np.arange(ms_pad*4096),np.arange(len(x)),np.real(x))
 xi = np.interp((1/fsr)*np.arange(ms_pad*4096),np.arange(len(x)),np.imag(x))

@@ -90,7 +90,7 @@ x = io.get_samples_complex(fp,n)
 
 fsr = 3*10230000.0/fs
 nco.mix(x,-coffset/fs,0)
-h = scipy.signal.firwin(161,12e6/(fs/2),window='hanning')
+h = scipy.signal.firwin(161,12e6/(fs/2),window='hann')
 x = scipy.signal.filtfilt(h,[1],x)
 xr = np.interp((1/fsr)*np.arange(ms_pad*3*10230),np.arange(len(x)),np.real(x))
 xi = np.interp((1/fsr)*np.arange(ms_pad*3*10230),np.arange(len(x)),np.imag(x))
