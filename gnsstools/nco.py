@@ -40,6 +40,21 @@ def mix_(x,f,p,tab):
 def mix(x,f,p):
   mix_(x,f,p,nco_table)
 
+@jit(nopython=True,locals={'dp': numba.int64, 'df': numba.int64, 'ddf': numba.int64})
+def mix_doppler_(x,doppler,f,p,tab):
+  n = len(x)
+  dp = int(np.floor(p*NT*(1<<50)))
+  df = int(np.floor(f*NT*(1<<50)))
+  ddf = int(np.floor(doppler*NT*(1<<50)))
+  for i in range(n):
+    idx = dp>>50
+    x[i] *= tab[idx&(NT-1)]
+    dp += df
+    df += ddf
+
+def mix_doppler(x,doppler,f,p):
+  mix_doppler_(x,doppler,f,p,nco_table)
+
 @jit(nopython=True)
 def accum(x, cp, incr, a, code_length):
   n = len(x)
