@@ -1,19 +1,19 @@
-# Xona X1 pilot code
+# Xona X5 pilot code
 #
 # Copyright 2025 Peter Monta
 
 import numpy as np
 
-from .x1p_strings import *
+from .x5p_strings import *
 
-chip_rate = 1023000
-code_length = 1023
+chip_rate = 10230000
+code_length = 10230
 
-secondary_code = np.array([0,1,0,0,0,1,0,0,1,1,1,1,0,1,1,1,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,1,1,0,0,0,1,1,0,1,0,1,1,1,0,1,0,0,0,1,1,0,0,1,1,1,1,1,1,1,0,1,1,1,1,1,0,0,1,0,1,0,0,1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,1])
+secondary_code = np.array([1,0,1,0,0,0,1,0,0,1,1,1,1,0,1,1,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,0,0,0,1,0,0,1,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,0,0,1,1,0,1,0,1,0,1,1,1,0,1,0,1,1,0,0,0,0,0,1,1,1,0,1,0,0,1,0,1,1,0,1,0,1,0,0,0,0,0,1,0,0,0,1])
 secondary_code = 1.0 - 2.0*secondary_code
 
-def x1p_parse_hex(prn):
-  s = x1p_strings[prn]
+def x5p_parse_hex(prn):
+  s = x5p_strings[prn]
   n = code_length
   y = np.zeros(n)
   for i in range(n):
@@ -24,13 +24,13 @@ def x1p_parse_hex(prn):
 
 codes = {}
 
-def x1p_code(prn):
+def x5p_code(prn):
   if prn not in codes:
-    codes[prn] = x1p_parse_hex(prn)
+    codes[prn] = x5p_parse_hex(prn)
   return codes[prn]
 
 def code(prn,chips,frac,incr,n):
-  c = x1p_code(prn)
+  c = x5p_code(prn)
   idx = (chips%code_length) + frac + incr*np.arange(n)
   idx = np.floor(idx).astype('int')
   idx = np.mod(idx,code_length)
@@ -54,4 +54,4 @@ def correlate(x,prn,chips,frac,incr,c):
   return p
 
 if __name__=='__main__':
-  print(x1p_code(0)[0:20])
+  print(x5p_code(0)[0:20])

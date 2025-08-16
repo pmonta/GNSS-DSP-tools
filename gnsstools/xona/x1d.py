@@ -51,4 +51,4 @@ def correlate(x,prn,chips,frac,incr,c):
   return p
 
 if __name__=='__main__':
-  print(x1d_code('pulsar-0')[0:20])
+  print(x1d_code(0)[0:20])
