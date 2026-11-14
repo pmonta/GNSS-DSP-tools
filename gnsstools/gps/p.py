@@ -95,7 +95,7 @@ def p_code(prn,start,len):
   return np.logical_xor(p_x1,p_x2)
 
 def code(prn,chips,frac,incr,n):
-  len = np.int(np.floor(n*incr)+5)
+  len = int(np.floor(n*incr)+5)
   c = p_code(prn,chips,len).astype('int')
   idx = frac + incr*np.arange(n)
   idx = np.floor(idx).astype('int')
